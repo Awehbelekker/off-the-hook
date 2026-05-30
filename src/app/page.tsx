@@ -29,13 +29,13 @@ export default async function HomePage() {
           </video>
 
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-            <span className="badge badge-green mb-6">Daily catch — Cape Town</span>
+            <span className="badge badge-green mb-6">Quality food delivered to your door</span>
             <h1 className="font-display text-6xl md:text-8xl font-semibold text-vula-cream leading-none mb-6">
               Off the Hook.
             </h1>
             <p className="font-sans text-lg md:text-xl text-vula-cream/70 max-w-xl mx-auto mb-10">
-              Cape Town's freshest catch, door to door.
-              From Hout Bay to your kitchen — ordered in 60 seconds on WhatsApp.
+              Fresh fish this week. Pasture-raised chicken. Frozen seafood.
+              Cape Town delivery — order in 60 seconds on WhatsApp.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/shop" className="btn-primary text-base px-8 py-4">
@@ -93,13 +93,13 @@ export default async function HomePage() {
 
         {/* ── Category grid ────────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-6 pb-20">
-          <h2 className="font-display text-4xl font-semibold mb-8">Today's catch</h2>
+          <h2 className="font-display text-4xl font-semibold mb-8">Shop by category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
             {[
-              { slug: "linefish", label: "Linefish", emoji: "🐟" },
-              { slug: "shellfish", label: "Shellfish", emoji: "🦐" },
-              { slug: "crayfish", label: "Crayfish", emoji: "🦞" },
-              { slug: "box_deal", label: "Box Deals", emoji: "📦" },
+              { slug: "fresh_fish", label: "Fresh Fish", emoji: "🐟" },
+              { slug: "fresh_chicken", label: "Fresh Chicken", emoji: "🐓" },
+              { slug: "frozen_seafood", label: "Frozen Seafood", emoji: "🦐" },
+              { slug: "frozen_chicken", label: "Frozen Chicken", emoji: "❄️" },
             ].map(({ slug, label, emoji }) => (
               <Link
                 key={slug}
@@ -136,7 +136,7 @@ export default async function HomePage() {
             </h2>
             <p className="font-sans text-vula-muted mb-10 text-lg">
               Message +27 73 781 5979, tell us what you want, and we handle the rest.
-              No app, no account — just WhatsApp.
+              Ask about this week's fresh fish, or order chicken and frozen seafood anytime.
             </p>
             <a
               href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
@@ -150,28 +150,45 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Provenance ───────────────────────────────────── */}
+        {/* ── Quality promise ──────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-6 py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="badge badge-amber mb-6">Our fishermen</span>
+              <span className="badge badge-amber mb-6">Our promise</span>
               <h2 className="font-display text-5xl font-semibold mb-6 leading-tight">
-                Hout Bay to your kitchen.
+                Quality food, delivered.
               </h2>
               <p className="font-sans text-vula-muted leading-relaxed mb-6">
-                We work directly with licensed linefish skippers out of Hout Bay and Kalk Bay.
-                No cold store. No middlemen. What's caught in the morning is at your door by afternoon.
+                Fresh fish sourced weekly from Cape Town waters — yellowfin tuna, hake, kingklip, and more.
+                Our pasture-raised chicken is GMO-free, with no growth hormones, no routine antibiotics, and no brine.
               </p>
-              <p className="font-sans text-vula-muted leading-relaxed">
-                Every order tells you exactly who caught your fish and where.
-              </p>
-            </div>
-            <div className="card aspect-square flex items-center justify-center">
-              {/* Replace with actual fisherman image */}
-              <div className="text-center text-vula-muted">
-                <span className="text-6xl block mb-4">🎣</span>
-                <p className="font-sans text-sm">Fisherman photography coming soon</p>
+              <div className="flex flex-col gap-2">
+                {[
+                  "GMO-free pasture-raised chicken",
+                  "No growth hormones · No brine",
+                  "Weekly fresh fish rotation",
+                  "All items sold by weight — what you order is what you pay for",
+                ].map((point) => (
+                  <p key={point} className="flex items-start gap-2 font-sans text-sm text-vula-muted">
+                    <span className="text-vula-green mt-0.5">✓</span>
+                    {point}
+                  </p>
+                ))}
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { emoji: "🐟", label: "Fresh fish", sub: "Weekly rotation" },
+                { emoji: "🐓", label: "Pasture chicken", sub: "No hormones · No brine" },
+                { emoji: "🦐", label: "Frozen seafood", sub: "Fixed pack prices" },
+                { emoji: "❄️", label: "Frozen chicken", sub: "Convenient & quality" },
+              ].map(({ emoji, label, sub }) => (
+                <div key={label} className="card flex flex-col items-center text-center gap-2 py-6">
+                  <span className="text-3xl">{emoji}</span>
+                  <p className="font-sans text-sm font-medium text-vula-cream">{label}</p>
+                  <p className="font-sans text-xs text-vula-muted">{sub}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

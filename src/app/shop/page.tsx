@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 
 const CATEGORIES = [
   { slug: "all", label: "All" },
-  { slug: "linefish", label: "Linefish", emoji: "🐟" },
-  { slug: "shellfish", label: "Shellfish", emoji: "🦐" },
-  { slug: "crayfish", label: "Crayfish", emoji: "🦞" },
-  { slug: "box_deal", label: "Box Deals", emoji: "📦" },
-  { slug: "smoked", label: "Smoked", emoji: "🔥" },
+  { slug: "fresh_fish", label: "Fresh Fish", emoji: "🐟" },
+  { slug: "fresh_chicken", label: "Fresh Chicken", emoji: "🐓" },
+  { slug: "frozen_chicken", label: "Frozen Chicken", emoji: "❄️" },
+  { slug: "frozen_seafood", label: "Frozen Seafood", emoji: "🦐" },
+  { slug: "extras", label: "Extras", emoji: "🍲" },
 ]
 
 export default async function ShopPage({

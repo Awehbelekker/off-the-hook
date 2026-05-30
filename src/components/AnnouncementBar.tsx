@@ -1,11 +1,12 @@
 "use client"
 
 const messages = [
-  "🐟  Free delivery on orders over R500 — Cape Town",
-  "🦞  Daily catch from Hout Bay & Kalk Bay fishermen",
-  "📦  Order by 10am for same-day morning delivery",
-  "⭐  HelloPeter 4.9 · Google 4.8 — Cape Town's top rated",
+  "🐟  Fresh fish this week: Yellowfin Tuna R290/kg · Hake R160/kg · Kingklip R240/kg",
+  "🐓  Pasture-raised chicken — GMO-free · No hormones · No brine",
+  "🦐  Frozen seafood packs — Calamari, Prawns, Mussels & more",
+  "📦  Order by 10am for same-day delivery — Cape Town",
   "🟢  WhatsApp ordering: +27 73 781 5979 — reply in minutes",
+  "✅  All items sold by weight — what you order is what you pay for",
 ]
 
 export default function AnnouncementBar() {
