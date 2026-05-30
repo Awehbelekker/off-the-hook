@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav"
 import { useCartStore } from "@/store/cart"
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotalCents, deliveryCents, totalCents } = useCartStore()
+  const { items, removeItem, updateQuantity, subtotalCents, deliveryCents } = useCartStore()
 
   const subtotal = subtotalCents()
   const delivery = subtotal >= 50000 ? 0 : deliveryCents  // Free delivery over R500
