@@ -4,6 +4,7 @@ import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
 import AnnouncementBar from "@/components/AnnouncementBar"
 import ProductCard from "@/components/ProductCard"
+import Logo from "@/components/Logo"
 import { getProducts } from "@/lib/api"
 
 export const revalidate = 60
@@ -29,10 +30,10 @@ export default async function HomePage() {
           </video>
 
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-            <span className="badge badge-green mb-6">Quality food delivered to your door</span>
-            <h1 className="font-display text-6xl md:text-8xl font-semibold text-vula-cream leading-none mb-6">
-              Off the Hook.
-            </h1>
+            {/* Logo — large in hero */}
+            <div className="flex justify-center mb-8">
+              <Logo size={160} showText={true} />
+            </div>
             <p className="font-sans text-lg md:text-xl text-vula-cream/70 max-w-xl mx-auto mb-10">
               Fresh fish this week. Pasture-raised chicken. Frozen seafood.
               Cape Town delivery — order in 60 seconds on WhatsApp.
@@ -192,6 +193,27 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+        {/* ── Footer ───────────────────────────────────────── */}
+        <footer className="border-t border-vula-border mt-10 py-12 px-6">
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Logo + tagline */}
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <Logo size={80} showText={true} />
+              <p className="font-sans text-xs text-vula-muted">Quality food delivered to your door</p>
+            </div>
+
+            {/* Links */}
+            <div className="flex flex-col items-center md:items-end gap-2 font-sans text-sm text-vula-muted">
+              <a href="https://wa.me/27737815979" target="_blank" rel="noopener noreferrer" className="hover:text-vula-green transition-colors">
+                WhatsApp: 073 781 5979
+              </a>
+              <a href="mailto:info@offthehook.capetown" className="hover:text-vula-green transition-colors">
+                info@offthehook.capetown
+              </a>
+              <p className="text-xs text-vula-muted/50 mt-2">© 2026 Off the Hook. Cape Town.</p>
+            </div>
+          </div>
+        </footer>
       </main>
 
       <BottomNav />

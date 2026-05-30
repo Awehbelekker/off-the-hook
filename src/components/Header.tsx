@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ShoppingCart, Search, User } from "lucide-react"
 import { useCartStore } from "@/store/cart"
+import Logo from "@/components/Logo"
 
 export default function Header() {
   const itemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0))
@@ -11,9 +12,11 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-vula-dark/90 backdrop-blur-md border-b border-vula-border">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-display text-2xl font-semibold text-vula-cream tracking-tight">
-          Off the Hook
-          <span className="text-vula-green">.</span>
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Off the Hook — home">
+          <Logo size={40} showText={false} />
+          <span className="font-display text-xl font-semibold text-vula-cream tracking-tight hidden sm:block">
+            Off the Hook
+          </span>
         </Link>
 
         {/* Desktop nav */}
