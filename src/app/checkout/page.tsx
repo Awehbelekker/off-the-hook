@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = "force-dynamic"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Lock, Truck, Clock } from "lucide-react"
@@ -67,7 +69,8 @@ export default function CheckoutPage() {
       })
 
       clearCart()
-      window.location.href = redirect_url
+      // Yoco redirect_url is external — use replace to avoid back-button loop
+      window.location.replace(redirect_url)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong — please try again.")
       setSubmitting(false)

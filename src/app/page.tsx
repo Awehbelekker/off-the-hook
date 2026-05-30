@@ -6,8 +6,10 @@ import AnnouncementBar from "@/components/AnnouncementBar"
 import ProductCard from "@/components/ProductCard"
 import { getProducts } from "@/lib/api"
 
+export const revalidate = 60
+
 export default async function HomePage() {
-  const products = await getProducts({ limit: 8 })
+  const products = await getProducts({ limit: 8 }).catch(() => [])
 
   return (
     <>

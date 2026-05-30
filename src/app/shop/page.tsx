@@ -27,7 +27,7 @@ export default async function ShopPage({
 }) {
   const { category } = await searchParams
   const activeCategory = category && category !== "all" ? category : undefined
-  const products = await getProducts({ category: activeCategory, inStockOnly: false })
+  const products = await getProducts({ category: activeCategory, inStockOnly: false }).catch(() => [])
 
   return (
     <>
