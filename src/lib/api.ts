@@ -9,7 +9,7 @@ async function vula<T>(path: string, options?: RequestInit): Promise<T> {
       "X-API-Key": process.env.VULA_API_KEY || "",
       ...(options?.headers || {}),
     },
-    next: { revalidate: 60 }, // ISR: revalidate product data every 60s
+    next: { revalidate: 60 },
   })
 
   if (!res.ok) {

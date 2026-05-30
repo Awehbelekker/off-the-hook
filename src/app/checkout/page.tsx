@@ -10,16 +10,26 @@ import { createCheckout } from "@/lib/api"
 
 type DeliverySlot = "morning" | "afternoon" | "express"
 
+type FormState = {
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  deliveryAddress: string
+  deliverySlot: DeliverySlot
+  deliveryNotes: string
+  agreePrivacy: boolean
+}
+
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, sessionId, subtotalCents, deliveryCents, clearCart } = useCartStore()
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     customerName: "",
     customerPhone: "",
     customerEmail: "",
     deliveryAddress: "",
-    deliverySlot: "morning" as DeliverySlot,
+    deliverySlot: "morning",
     deliveryNotes: "",
     agreePrivacy: false,
   })
@@ -36,7 +46,7 @@ export default function CheckoutPage() {
     { value: "express", label: "Express", detail: "2-hour window", icon: Truck, extra: "+R50" },
   ]
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!form.agreePrivacy) { setError("Please agree to the privacy policy."); return }
     if (items.length === 0) { router.push("/cart"); return }
@@ -45,7 +55,6 @@ export default function CheckoutPage() {
     setError(null)
 
     try {
-      const deliveryCents = form.deliverySlot === "express" ? 13000 : (subtotal >= 50000 ? 0 : 8000)
       const { redirect_url } = await createCheckout({
         sessionId,
         customerName: form.customerName,
@@ -95,7 +104,7 @@ export default function CheckoutPage() {
                     type={type}
                     required={required}
                     placeholder={placeholder}
-                    value={(form as Record<string, string>)[id]}
+                    value={(form as unknown as Record<string, string>)[id]}
                     onChange={(e) => setForm((f) => ({ ...f, [id]: e.target.value }))}
                     className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors"
                   />
