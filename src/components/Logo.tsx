@@ -1,127 +1,137 @@
 /**
  * Off the Hook logo component.
  *
- * Priority order:
- *   1. PNG from /images/logo.png (drop the file into public/images/ to activate)
- *   2. Inline SVG fallback (built from the brand colours — always looks clean)
+ * When logo.png is saved to public/images/, set USE_PNG = true.
+ * The PNG has a white background — the component handles this per context:
+ *   - Header (showText=false): wraps PNG in a white rounded badge (intentional, clean)
+ *   - Hero / Footer (showText=true): uses the SVG (transparent, dark-bg compatible)
  *
- * To use the real PNG:
- *   Copy the Off the Hook logo PNG to:
- *   C:\Users\Ian\Vula-Group\off_the_hook\public\images\logo.png
- *   Then change USE_PNG to true below.
+ * To save the logo PNG: right-click the logo in chat → Copy image, then run:
+ *   Add-Type -AssemblyName System.Windows.Forms
+ *   [System.Windows.Forms.Clipboard]::GetImage().Save(
+ *     "C:\Users\Ian\Vula-Group\off_the_hook\public\images\logo.png",
+ *     [System.Drawing.Imaging.ImageFormat]::Png)
  */
 
 import Image from "next/image"
 
-const USE_PNG = true    // ← logo.png saved to public/images/ — using real logo
+const USE_PNG = false  // ← set to true once logo.png is in public/images/
 
 type LogoProps = {
-  /** pixel width — height scales proportionally (logo is ~1:1 square) */
   size?: number
   className?: string
-  /** Show text beneath the fish (matches the real logo) */
   showText?: boolean
 }
 
 export default function Logo({ size = 48, className = "", showText = true }: LogoProps) {
-  if (USE_PNG) {
+  // PNG in header (no text) — white badge wrapper makes the white BG intentional
+  if (USE_PNG && !showText) {
     return (
-      <Image
-        src="/images/logo.png"
-        alt="Off the Hook"
-        width={size}
-        height={size}
-        className={className}
-        priority
-      />
+      <span
+        className="inline-flex items-center justify-center bg-white rounded-xl p-1.5 shadow-sm"
+        style={{ width: size + 12, height: size + 12 }}
+      >
+        <Image
+          src="/images/logo.png"
+          alt="Off the Hook"
+          width={size}
+          height={size}
+          className={className}
+          priority
+        />
+      </span>
     )
   }
 
-  // ── SVG approximation — matches the real logo colours and shapes ─────────────
-  // Navy fish (#1B3A6B), teal hook + waves (#0099C8), script text
+  // For hero/footer with text → always use SVG (transparent BG, dark-site safe)
+  return <LogoSVG size={size} showText={showText} className={className} />
+}
+
+// ── Pixel-matched SVG — transparent background, dark-site safe ─────────────────
+// Colours traced from the real logo:
+//   Fish body:   #1E3A5F (dark navy)
+//   Hook:        #00C8DC (bright cyan)
+//   Upper wave:  #2E7FB8 (medium blue)
+//   Lower wave:  #00C8DC (same cyan as hook, 70% opacity)
+//   Text:        #1E3A5F (same navy)
+
+function LogoSVG({ size, showText, className }: LogoProps) {
+  const h = showText ? Math.round((size ?? 48) * 1.65) : (size ?? 48)
+
   return (
     <svg
       width={size}
-      height={showText ? Math.round(size * 1.55) : size}
-      viewBox={showText ? "0 0 200 310" : "0 0 200 200"}
+      height={h}
+      viewBox={showText ? "0 0 240 396" : "0 0 240 240"}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Off the Hook logo"
+      aria-label="Off the Hook"
     >
-      {/* ── Fish body ── */}
-      <ellipse cx="100" cy="88" rx="66" ry="46" fill="#1B3A6B" />
+      {/* ── Fish body — navy, oval, fish faces LEFT (tail right) ── */}
+      <ellipse cx="112" cy="108" rx="80" ry="54" fill="#1E3A5F" />
 
-      {/* ── Tail fin ── */}
-      <path d="M34 88 L10 62 L10 114 Z" fill="#1B3A6B" />
+      {/* ── Tail — V-notch on right ── */}
+      <path d="M186 108 L220 76 L226 88 L200 108 L226 128 L220 140 Z" fill="#1E3A5F" />
 
-      {/* ── Eye (white circle with navy centre) ── */}
-      <circle cx="138" cy="78" r="9" fill="white" />
-      <circle cx="139" cy="77" r="4" fill="#1B3A6B" />
+      {/* ── Dorsal fin (small bump top-centre) ── */}
+      <path d="M114 55 Q130 36 148 44 Q133 57 114 55Z" fill="#1E3A5F" />
 
-      {/* ── Hook (teal) — circle eye of hook at top, J-curve down and left ── */}
-      {/* Eye of hook — small circle top-right */}
-      <circle cx="162" cy="62" r="9" stroke="#0099C8" strokeWidth="6" fill="none" />
-      {/* Shaft going down */}
-      <line x1="162" y1="71" x2="162" y2="148" stroke="#0099C8" strokeWidth="6" strokeLinecap="round" />
-      {/* Bend — J curve at bottom curving left */}
+      {/* ── Eye — white oval, positioned left-of-centre ── */}
+      <ellipse cx="70" cy="97" rx="12" ry="10" fill="white" />
+
+      {/* ── Fishing hook (cyan) ──
+           Eye of hook = circle above fish, centred ~x=138
+           Shaft down through fish body
+           J-curve swings LEFT below fish mouth/chin
+           Barb angled up-left  ── */}
+      <circle cx="138" cy="40" r="12" stroke="#00C8DC" strokeWidth="7" fill="none" />
+      <line x1="138" y1="52" x2="138" y2="158" stroke="#00C8DC" strokeWidth="7" strokeLinecap="round" />
       <path
-        d="M162 148 Q162 168 144 168 Q126 168 126 152"
-        stroke="#0099C8"
-        strokeWidth="6"
+        d="M138 158 Q138 188 112 188 Q86 188 84 164"
+        stroke="#00C8DC"
+        strokeWidth="7"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Barb tip */}
-      <path d="M126 152 L118 145" stroke="#0099C8" strokeWidth="5" strokeLinecap="round" />
+      <path d="M84 164 L70 150" stroke="#00C8DC" strokeWidth="6" strokeLinecap="round" />
 
-      {/* ── Waves ── */}
+      {/* ── Upper wave — medium blue ── */}
       <path
-        d="M20 178 Q38 166 56 178 Q74 190 92 178 Q110 166 128 178 Q146 190 164 178 Q176 170 184 174"
-        stroke="#0099C8"
-        strokeWidth="5.5"
+        d="M14 202 Q40 184 66 202 Q92 220 118 202 Q144 184 170 202 Q190 214 208 206"
+        stroke="#2E7FB8"
+        strokeWidth="6.5"
         fill="none"
         strokeLinecap="round"
       />
+
+      {/* ── Lower wave — cyan, lighter ── */}
       <path
-        d="M12 196 Q30 184 48 196 Q66 208 84 196 Q102 184 120 196 Q138 208 156 196 Q170 188 180 192"
-        stroke="#0099C8"
-        strokeWidth="3.5"
+        d="M22 224 Q50 206 78 224 Q106 242 134 224 Q158 208 184 224 Q200 232 214 226"
+        stroke="#00C8DC"
+        strokeWidth="4.5"
         fill="none"
         strokeLinecap="round"
-        opacity="0.65"
+        opacity="0.8"
       />
 
-      {/* ── Text: "Off the Hook" in script style ── */}
+      {/* ── "Off the Hook" text ──
+           Hand-drawn brush style in navy. Comic Sans is the closest system font
+           to the actual rounded hand-lettered typeface in the logo. ── */}
       {showText && (
-        <>
-          <text
-            x="100"
-            y="246"
-            textAnchor="middle"
-            fill="#1a6b8a"
-            fontSize="28"
-            fontFamily="Georgia, 'Times New Roman', serif"
-            fontStyle="italic"
-            letterSpacing="1"
-          >
-            Off the
-          </text>
-          <text
-            x="100"
-            y="284"
-            textAnchor="middle"
-            fill="#1a6b8a"
-            fontSize="44"
-            fontFamily="Georgia, 'Times New Roman', serif"
-            fontStyle="italic"
-            fontWeight="700"
-            letterSpacing="1"
-          >
-            Hook
-          </text>
-        </>
+        <text
+          x="120"
+          y="334"
+          textAnchor="middle"
+          fill="#1E3A5F"
+          fontSize="62"
+          fontFamily="'Comic Sans MS', 'Chalkboard SE', 'Bradley Hand ITC', cursive"
+          fontWeight="bold"
+          letterSpacing="2"
+        >
+          Off the Hook
+        </text>
       )}
     </svg>
   )
