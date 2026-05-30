@@ -1,0 +1,228 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Lock, Truck, Clock } from "lucide-react"
+import Header from "@/components/Header"
+import BottomNav from "@/components/BottomNav"
+import { useCartStore } from "@/store/cart"
+import { createCheckout } from "@/lib/api"
+
+type DeliverySlot = "morning" | "afternoon" | "express"
+
+export default function CheckoutPage() {
+  const router = useRouter()
+  const { items, sessionId, subtotalCents, deliveryCents, clearCart } = useCartStore()
+
+  const [form, setForm] = useState({
+    customerName: "",
+    customerPhone: "",
+    customerEmail: "",
+    deliveryAddress: "",
+    deliverySlot: "morning" as DeliverySlot,
+    deliveryNotes: "",
+    agreePrivacy: false,
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const subtotal = subtotalCents()
+  const delivery = subtotal >= 50000 ? 0 : deliveryCents
+  const total = subtotal + delivery
+
+  const SLOTS = [
+    { value: "morning", label: "Morning", detail: "08:00–12:00", icon: Clock, extra: "" },
+    { value: "afternoon", label: "Afternoon", detail: "12:00–17:00", icon: Clock, extra: "" },
+    { value: "express", label: "Express", detail: "2-hour window", icon: Truck, extra: "+R50" },
+  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.agreePrivacy) { setError("Please agree to the privacy policy."); return }
+    if (items.length === 0) { router.push("/cart"); return }
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      const deliveryCents = form.deliverySlot === "express" ? 13000 : (subtotal >= 50000 ? 0 : 8000)
+      const { redirect_url } = await createCheckout({
+        sessionId,
+        customerName: form.customerName,
+        customerPhone: form.customerPhone,
+        customerEmail: form.customerEmail || undefined,
+        deliveryAddress: form.deliveryAddress,
+        deliverySlot: form.deliverySlot,
+        deliveryNotes: form.deliveryNotes || undefined,
+        channel: "web",
+      })
+
+      clearCart()
+      window.location.href = redirect_url
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong — please try again.")
+      setSubmitting(false)
+    }
+  }
+
+  if (items.length === 0) {
+    router.push("/cart")
+    return null
+  }
+
+  return (
+    <>
+      <Header />
+      <main className="max-w-4xl mx-auto px-6 py-10 pb-28 md:pb-10">
+        <h1 className="font-display text-4xl font-semibold mb-8">Checkout</h1>
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left — form */}
+          <div className="flex flex-col gap-6">
+            {/* Contact */}
+            <div className="card flex flex-col gap-4">
+              <h2 className="font-display text-xl font-semibold">Contact details</h2>
+
+              {[
+                { id: "customerName", label: "Full name", type: "text", required: true, placeholder: "Your name" },
+                { id: "customerPhone", label: "WhatsApp number", type: "tel", required: true, placeholder: "+27 73 781 5979" },
+                { id: "customerEmail", label: "Email (optional)", type: "email", required: false, placeholder: "you@example.com" },
+              ].map(({ id, label, type, required, placeholder }) => (
+                <div key={id} className="flex flex-col gap-1.5">
+                  <label htmlFor={id} className="font-sans text-sm text-vula-muted">{label}</label>
+                  <input
+                    id={id}
+                    type={type}
+                    required={required}
+                    placeholder={placeholder}
+                    value={(form as Record<string, string>)[id]}
+                    onChange={(e) => setForm((f) => ({ ...f, [id]: e.target.value }))}
+                    className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Delivery */}
+            <div className="card flex flex-col gap-4">
+              <h2 className="font-display text-xl font-semibold">Delivery</h2>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="deliveryAddress" className="font-sans text-sm text-vula-muted">Delivery address</label>
+                <textarea
+                  id="deliveryAddress"
+                  required
+                  rows={3}
+                  placeholder="Street address, suburb, Cape Town"
+                  value={form.deliveryAddress}
+                  onChange={(e) => setForm((f) => ({ ...f, deliveryAddress: e.target.value }))}
+                  className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors resize-none"
+                />
+              </div>
+
+              {/* Delivery slot */}
+              <div>
+                <p className="font-sans text-sm text-vula-muted mb-2">Delivery slot</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {SLOTS.map(({ value, label, detail, extra }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, deliverySlot: value as DeliverySlot }))}
+                      className={[
+                        "flex flex-col items-center gap-1 p-3 rounded-card border text-center transition-colors",
+                        form.deliverySlot === value
+                          ? "border-vula-green bg-vula-green/10"
+                          : "border-vula-border hover:border-vula-green/50",
+                      ].join(" ")}
+                    >
+                      <span className="font-sans text-sm font-medium text-vula-cream">{label}</span>
+                      <span className="font-sans text-xs text-vula-muted">{detail}</span>
+                      {extra && <span className="font-sans text-xs text-vula-amber">{extra}</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="deliveryNotes" className="font-sans text-sm text-vula-muted">Delivery notes (optional)</label>
+                <input
+                  id="deliveryNotes"
+                  type="text"
+                  placeholder="Gate code, landmark, etc."
+                  value={form.deliveryNotes}
+                  onChange={(e) => setForm((f) => ({ ...f, deliveryNotes: e.target.value }))}
+                  className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right — order summary + pay */}
+          <div className="flex flex-col gap-6">
+            <div className="card">
+              <h2 className="font-display text-xl font-semibold mb-4">Order summary</h2>
+              <div className="flex flex-col gap-3 mb-4 pb-4 border-b border-vula-border">
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between font-sans text-sm">
+                    <span className="text-vula-muted">{item.quantity}× {item.name}</span>
+                    <span className="text-vula-cream">R{((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2 text-sm font-sans">
+                <div className="flex justify-between text-vula-muted">
+                  <span>Subtotal</span>
+                  <span>R{(subtotal / 100).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-vula-muted mb-2">
+                  <span>Delivery ({form.deliverySlot})</span>
+                  <span>{form.deliverySlot === "express" ? "R130.00" : delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-vula-cream text-base pt-2 border-t border-vula-border">
+                  <span>Total</span>
+                  <span>R{(total / 100).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.agreePrivacy}
+                onChange={(e) => setForm((f) => ({ ...f, agreePrivacy: e.target.checked }))}
+                className="mt-0.5 accent-vula-green"
+              />
+              <span className="font-sans text-xs text-vula-muted leading-relaxed">
+                I agree to the{" "}
+                <a href="/privacy" className="text-vula-green underline">privacy policy</a>
+                {" "}and consent to my data being used for order fulfilment. POPIA compliant.
+              </span>
+            </label>
+
+            {error && (
+              <p className="font-sans text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-input px-4 py-3">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary w-full justify-center text-base py-4 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Lock size={16} />
+              {submitting ? "Processing…" : `Pay R${(total / 100).toFixed(2)} with Yoco`}
+            </button>
+
+            <p className="font-sans text-xs text-vula-muted text-center">
+              You'll be redirected to Yoco's secure payment page.
+            </p>
+          </div>
+        </form>
+      </main>
+      <BottomNav />
+    </>
+  )
+}

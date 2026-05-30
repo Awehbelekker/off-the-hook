@@ -1,0 +1,37 @@
+import type { Metadata } from "next"
+import { Cormorant_Garamond, Inter } from "next/font/google"
+import "./globals.css"
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+export const metadata: Metadata = {
+  title: { default: "Off the Hook", template: "%s | Off the Hook" },
+  description: "Cape Town's freshest catch, door to door. Daily linefish, shellfish & crayfish — ordered in 60 seconds on WhatsApp.",
+  keywords: ["fresh fish Cape Town", "seafood delivery", "Cape Town fish", "Hout Bay", "Kalk Bay"],
+  openGraph: {
+    siteName: "Off the Hook",
+    locale: "en_ZA",
+    type: "website",
+  },
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en-ZA" className={`${cormorant.variable} ${inter.variable}`}>
+      <body className="min-h-screen bg-vula-dark text-vula-cream antialiased">
+        {children}
+      </body>
+    </html>
+  )
+}
