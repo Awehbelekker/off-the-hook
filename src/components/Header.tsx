@@ -11,12 +11,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-vula-border">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Off the Hook — home">
-          <Logo size={40} showText={false} />
-          <span className="font-display text-xl font-semibold text-vula-dark tracking-tight hidden sm:block">
-            Off the Hook
-          </span>
+        {/* Logo — official mark includes the wordmark */}
+        <Link href="/" className="flex items-center" aria-label="Off the Hook — home">
+          <Logo size={48} showText={false} />
         </Link>
 
         {/* Desktop nav */}
