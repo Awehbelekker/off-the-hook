@@ -18,26 +18,37 @@ export default async function HomePage() {
       <Header />
 
       <main className="pb-24 md:pb-0">
-        {/* ── Hero ─────────────────────────────────────────── */}
-        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-          {/* Video background */}
-          <video
-            autoPlay muted loop playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-30"
-            poster="/images/hero-poster.jpg"
+        {/* ── Hero — light cream background matching the brand sheet ─── */}
+        <section className="relative bg-vula-cream overflow-hidden">
+          {/* subtle wave decoration at the bottom (echoes the logo waves) */}
+          <svg
+            className="absolute bottom-0 left-0 right-0 w-full text-vula-green/15"
+            viewBox="0 0 1440 120"
+            preserveAspectRatio="none"
+            aria-hidden
           >
-            <source src="/videos/ocean-hero.mp4" type="video/mp4" />
-          </video>
+            <path
+              d="M0,40 Q360,100 720,40 T1440,40 L1440,120 L0,120 Z"
+              fill="currentColor"
+            />
+            <path
+              d="M0,70 Q360,20 720,70 T1440,70 L1440,120 L0,120 Z"
+              fill="currentColor"
+              opacity="0.6"
+            />
+          </svg>
 
-          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+          <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 md:py-28 text-center">
             {/* Logo — large in hero */}
-            <div className="flex justify-center mb-8">
-              <Logo size={160} showText={true} />
+            <div className="flex justify-center mb-6">
+              <Logo size={180} showText={true} />
             </div>
-            <p className="font-sans text-lg md:text-xl text-vula-cream/70 max-w-xl mx-auto mb-10">
-              Fresh fish this week. Pasture-raised chicken. Frozen seafood.
+
+            <p className="font-sans text-lg md:text-xl text-vula-dark/70 max-w-xl mx-auto mb-10 leading-relaxed">
+              Fresh fish this week. Pasture-raised chicken. Frozen seafood.<br />
               Cape Town delivery — order in 60 seconds on WhatsApp.
             </p>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/shop" className="btn-primary text-base px-8 py-4">
                 Shop the catch
@@ -47,24 +58,45 @@ export default async function HomePage() {
                 href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-ghost text-base px-8 py-4"
+                className="btn-navy text-base px-8 py-4"
               >
-                <MessageCircle size={18} className="text-vula-green" />
+                <MessageCircle size={18} />
                 Order on WhatsApp
               </a>
             </div>
 
             {/* Social proof */}
-            <div className="flex items-center justify-center gap-6 mt-12 text-vula-cream/50 text-sm font-sans">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-12 text-vula-dark/60 text-sm font-sans">
               <div className="flex items-center gap-1">
                 <Star size={14} className="text-vula-amber fill-vula-amber" />
                 <span>4.9 · 200+ reviews</span>
               </div>
-              <span>·</span>
+              <span className="hidden sm:inline">·</span>
               <span>Free delivery over R500</span>
-              <span>·</span>
+              <span className="hidden sm:inline">·</span>
               <span>Cape Town only</span>
             </div>
+          </div>
+        </section>
+
+        {/* Brand promise band — matches "GMO FREE DIET" navy band on the sheet */}
+        <section className="band-navy">
+          <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {[
+              { label: "GMO Free", sub: "Pasture-raised" },
+              { label: "No Hormones", sub: "Naturally grown" },
+              { label: "No Antibiotics", sub: "Routine-free" },
+              { label: "No Brine", sub: "Real meat, real weight" },
+            ].map(({ label, sub }) => (
+              <div key={label} className="flex flex-col items-center gap-1">
+                <span className="font-display text-lg md:text-xl font-semibold text-vula-cream">
+                  {label}
+                </span>
+                <span className="font-sans text-xs text-vula-cream/60 tracking-wide uppercase">
+                  {sub}
+                </span>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -128,22 +160,22 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── WhatsApp CTA ─────────────────────────────────── */}
-        <section className="bg-vula-green/10 border-y border-vula-green/20 py-20 px-6">
+        {/* ── WhatsApp CTA — teal band, matches "Ethical Farming" footer band ─── */}
+        <section className="band-teal py-20 px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="badge badge-green mb-6">WhatsApp ordering</span>
-            <h2 className="font-display text-5xl font-semibold mb-4">
+            <span className="badge badge-navy mb-6">WhatsApp ordering</span>
+            <h2 className="font-display text-5xl font-semibold mb-4 text-white">
               Order in 60 seconds.
             </h2>
-            <p className="font-sans text-vula-muted mb-10 text-lg">
+            <p className="font-sans text-white/90 mb-10 text-lg leading-relaxed">
               Message +27 73 781 5979, tell us what you want, and we handle the rest.
-              Ask about this week's fresh fish, or order chicken and frozen seafood anytime.
+              Ask about this week&apos;s fresh fish, or order chicken and frozen seafood anytime.
             </p>
             <a
               href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-amber text-base px-10 py-4"
+              className="btn-navy text-base px-10 py-4 shadow-lg"
             >
               <MessageCircle size={20} />
               Start ordering on WhatsApp
@@ -186,7 +218,7 @@ export default async function HomePage() {
               ].map(({ emoji, label, sub }) => (
                 <div key={label} className="card flex flex-col items-center text-center gap-2 py-6">
                   <span className="text-3xl">{emoji}</span>
-                  <p className="font-sans text-sm font-medium text-vula-cream">{label}</p>
+                  <p className="font-sans text-sm font-semibold text-vula-dark">{label}</p>
                   <p className="font-sans text-xs text-vula-muted">{sub}</p>
                 </div>
               ))}

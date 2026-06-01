@@ -21,7 +21,7 @@ export default function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-vula-dark-2 border-t border-vula-border pb-safe">
+    <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white border-t border-vula-border pb-safe shadow-[0_-4px_12px_rgba(14,45,77,0.06)]">
       <div className="flex items-center justify-around h-16">
         {tabs.map(({ href, icon: Icon, label, isWhatsApp, external, badge }) => {
           const active = !external && pathname === href
@@ -35,13 +35,13 @@ export default function BottomNav() {
                 rel="noopener noreferrer"
                 className="flex flex-col items-center gap-1 -mt-6"
               >
-                {/* Centre hero tab — elevated green circle */}
-                <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-vula-green shadow-lg shadow-vula-green/30">
-                  <Icon size={24} className="text-vula-cream" />
-                  {/* Live green dot */}
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse-dot ring-2 ring-vula-dark-2" />
+                {/* Centre hero tab — elevated WhatsApp green circle */}
+                <span className="relative flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg shadow-[#25D366]/40">
+                  <Icon size={24} className="text-white" />
+                  {/* Live indicator dot */}
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-vula-green animate-pulse-dot ring-2 ring-white" />
                 </span>
-                <span className="font-sans text-[10px] text-vula-green font-medium">{label}</span>
+                <span className="font-sans text-[10px] text-[#25D366] font-semibold">{label}</span>
               </a>
             )
           }
@@ -52,12 +52,12 @@ export default function BottomNav() {
               href={href}
               className={clsx(
                 "relative flex flex-col items-center gap-1 px-3 py-2 transition-colors",
-                active ? "text-vula-green" : "text-vula-muted"
+                active ? "text-vula-green" : "text-vula-dark/55 hover:text-vula-dark"
               )}
             >
               <Icon size={22} />
               {badge !== undefined && badge > 0 && (
-                <span className="absolute top-1 right-2 bg-vula-green text-vula-cream text-[10px] font-sans font-semibold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-2 bg-vula-green text-white text-[10px] font-sans font-semibold w-4 h-4 rounded-full flex items-center justify-center">
                   {badge > 9 ? "9+" : badge}
                 </span>
               )}

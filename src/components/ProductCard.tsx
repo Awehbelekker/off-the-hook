@@ -27,7 +27,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const priceRands = (product.price_cents / 100).toFixed(2)
 
   return (
-    <div className="card group flex flex-col gap-4 hover:border-vula-green/40 transition-colors">
+    <div className="card group flex flex-col gap-4 hover:border-vula-green/60 hover:shadow-md transition-all">
       {/* Image */}
       <Link href={`/shop/${product.slug}`} className="relative aspect-square overflow-hidden rounded-card bg-vula-dark-3 block">
         {product.image_url ? (
@@ -39,7 +39,7 @@ export default function ProductCard({ product }: { product: Product }) {
             sizes="(max-width: 640px) 50vw, 25vw"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl">🐟</div>
+          <div className="absolute inset-0 flex items-center justify-center text-4xl text-vula-dark/30">🐟</div>
         )}
 
         {/* Badges */}
@@ -50,7 +50,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </span>
           )}
           {!product.in_stock && (
-            <span className="badge bg-vula-dark/80 text-vula-muted text-[10px]">Out of stock</span>
+            <span className="badge bg-vula-dark/80 text-vula-cream text-[10px]">Out of stock</span>
           )}
         </div>
       </Link>
@@ -58,14 +58,14 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Details */}
       <div className="flex flex-col gap-2 flex-1">
         {product.catch_source && (
-          <p className="font-sans text-[11px] text-vula-muted uppercase tracking-widest">
+          <p className="font-sans text-[11px] text-vula-green-dark uppercase tracking-widest font-semibold">
             {product.catch_source}
             {product.fisherman_name && ` · ${product.fisherman_name}`}
           </p>
         )}
 
         <Link href={`/shop/${product.slug}`}>
-          <h3 className="font-display text-lg font-semibold leading-tight hover:text-vula-green transition-colors">
+          <h3 className="font-display text-lg font-semibold leading-tight text-vula-dark hover:text-vula-green transition-colors">
             {product.name}
           </h3>
         </Link>
@@ -75,7 +75,7 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
 
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-vula-border">
-          <p className="font-sans font-semibold text-vula-cream">
+          <p className="font-sans font-bold text-vula-dark text-base">
             R{priceRands}
           </p>
 
@@ -83,9 +83,9 @@ export default function ProductCard({ product }: { product: Product }) {
             disabled={!product.in_stock}
             onClick={() => addItem({ id: product.id, name: product.name, price_cents: product.price_cents, image_url: product.image_url })}
             className={clsx(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-medium transition-colors",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-semibold transition-colors",
               product.in_stock
-                ? "bg-vula-green text-vula-cream hover:bg-vula-green-light"
+                ? "bg-vula-green text-white hover:bg-vula-green-light"
                 : "bg-vula-border text-vula-muted cursor-not-allowed"
             )}
           >

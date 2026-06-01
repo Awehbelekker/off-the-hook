@@ -2,70 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Vula Master Plan — design tokens */
+/* Off the Hook — brand design tokens (matches the official price-list sheet) */
 :root {
-  --color-green:   #2C5545;
-  --color-amber:   #C4861A;
-  --color-cream:   #F7F4EE;
-  --color-dark:    #080808;
-  --radius-card:   8px;
-  --radius-input:  6px;
+  --color-navy:    #0E2D4D;   /* primary text + dark bands */
+  --color-teal:    #2DAAB5;   /* brand accent + CTAs */
+  --color-cream:   #F5F0E6;   /* page background */
+  --color-peach:   #F8E8D2;   /* highlight rows */
+  --color-amber:   #E8B86E;   /* warm accent */
+  --color-border:  #E5DFCF;
+  --radius-card:   12px;
+  --radius-input:  8px;
   --radius-badge:  20px;
 }
 
-/* Base */
+/* Base — light theme on cream */
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--color-dark);
-  color: var(--color-cream);
+  background-color: var(--color-cream);
+  color: var(--color-navy);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Display headings use Cormorant Garamond */
+/* Display headings — Cormorant Garamond */
 h1, h2, h3, .font-display {
   font-family: var(--font-cormorant), Georgia, serif;
   letter-spacing: -0.02em;
 }
 
-/* Vula green button */
+/* Teal primary button (brand CTA) */
 .btn-primary {
-  @apply bg-vula-green text-vula-cream px-6 py-3 rounded-input
-         font-sans text-sm font-medium tracking-wide
+  @apply bg-vula-green text-white px-6 py-3 rounded-input
+         font-sans text-sm font-semibold tracking-wide
          hover:bg-vula-green-light active:bg-vula-green-dark
+         transition-colors duration-150 inline-flex items-center gap-2
+         shadow-sm;
+}
+
+/* Navy secondary button */
+.btn-navy {
+  @apply bg-vula-dark text-vula-cream px-6 py-3 rounded-input
+         font-sans text-sm font-semibold tracking-wide
+         hover:bg-vula-dark-soft
          transition-colors duration-150 inline-flex items-center gap-2;
 }
 
-/* Amber accent button */
+/* Peach/amber accent button (highlight CTA) */
 .btn-amber {
   @apply bg-vula-amber text-vula-dark px-6 py-3 rounded-input
-         font-sans text-sm font-medium tracking-wide
+         font-sans text-sm font-semibold tracking-wide
          hover:bg-vula-amber-light
          transition-colors duration-150 inline-flex items-center gap-2;
 }
 
-/* Ghost button */
+/* Ghost / outline button */
 .btn-ghost {
-  @apply border border-vula-border text-vula-cream px-6 py-3 rounded-input
+  @apply border border-vula-border text-vula-dark px-6 py-3 rounded-input
          font-sans text-sm font-medium tracking-wide
          hover:border-vula-green hover:text-vula-green
          transition-colors duration-150 inline-flex items-center gap-2;
 }
 
-/* Card */
+/* Card — white surface on cream background */
 .card {
-  @apply bg-vula-dark-2 border border-vula-border rounded-card p-6;
+  @apply bg-white border border-vula-border rounded-card p-6 shadow-sm;
 }
 
-/* Badge */
+/* Badges */
 .badge {
   @apply inline-flex items-center gap-1 px-3 py-1 rounded-badge
-         text-xs font-medium tracking-wide;
+         text-xs font-semibold tracking-wide;
 }
 
-.badge-green { @apply badge bg-vula-green/20 text-vula-green; }
-.badge-amber { @apply badge bg-vula-amber/20 text-vula-amber; }
+.badge-green { @apply badge bg-vula-green/15 text-vula-green-dark; }
+.badge-amber { @apply badge bg-vula-amber/25 text-vula-dark; }
+.badge-navy  { @apply badge bg-vula-dark text-vula-cream; }
+
+/* Section bands (matches "GMO FREE DIET" navy band + "Ethical Farming" teal band) */
+.band-navy {
+  @apply bg-vula-dark text-vula-cream py-6;
+}
+.band-teal {
+  @apply bg-vula-green text-white py-6;
+}
+
+/* Highlight row (peach — matches *AMENDMENT* / *NEW* on the price sheet) */
+.row-highlight {
+  @apply bg-vula-peach border-l-4 border-vula-amber;
+}
 
 /* Announcement bar scroll */
 .scroll-x {

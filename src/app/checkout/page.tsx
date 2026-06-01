@@ -109,7 +109,7 @@ export default function CheckoutPage() {
                     placeholder={placeholder}
                     value={(form as unknown as Record<string, string>)[id]}
                     onChange={(e) => setForm((f) => ({ ...f, [id]: e.target.value }))}
-                    className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors"
+                    className="bg-white border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-dark placeholder:text-vula-muted focus:outline-none focus:border-vula-green focus:ring-2 focus:ring-vula-green/20 transition-all"
                   />
                 </div>
               ))}
@@ -128,7 +128,7 @@ export default function CheckoutPage() {
                   placeholder="Street address, suburb, Cape Town"
                   value={form.deliveryAddress}
                   onChange={(e) => setForm((f) => ({ ...f, deliveryAddress: e.target.value }))}
-                  className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors resize-none"
+                  className="bg-white border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-dark placeholder:text-vula-muted focus:outline-none focus:border-vula-green focus:ring-2 focus:ring-vula-green/20 transition-all resize-none"
                 />
               </div>
 
@@ -148,9 +148,9 @@ export default function CheckoutPage() {
                           : "border-vula-border hover:border-vula-green/50",
                       ].join(" ")}
                     >
-                      <span className="font-sans text-sm font-medium text-vula-cream">{label}</span>
+                      <span className="font-sans text-sm font-semibold text-vula-dark">{label}</span>
                       <span className="font-sans text-xs text-vula-muted">{detail}</span>
-                      {extra && <span className="font-sans text-xs text-vula-amber">{extra}</span>}
+                      {extra && <span className="font-sans text-xs font-semibold text-vula-green-dark">{extra}</span>}
                     </button>
                   ))}
                 </div>
@@ -164,7 +164,7 @@ export default function CheckoutPage() {
                   placeholder="Gate code, landmark, etc."
                   value={form.deliveryNotes}
                   onChange={(e) => setForm((f) => ({ ...f, deliveryNotes: e.target.value }))}
-                  className="bg-vula-dark-3 border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-cream placeholder:text-vula-muted focus:outline-none focus:border-vula-green transition-colors"
+                  className="bg-white border border-vula-border rounded-input px-4 py-3 font-sans text-sm text-vula-dark placeholder:text-vula-muted focus:outline-none focus:border-vula-green focus:ring-2 focus:ring-vula-green/20 transition-all"
                 />
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between font-sans text-sm">
                     <span className="text-vula-muted">{item.quantity}× {item.name}</span>
-                    <span className="text-vula-cream">R{((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
+                    <span className="text-vula-dark font-medium">R{((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -191,7 +191,7 @@ export default function CheckoutPage() {
                   <span>Delivery ({form.deliverySlot})</span>
                   <span>{form.deliverySlot === "express" ? "R130.00" : delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
                 </div>
-                <div className="flex justify-between font-semibold text-vula-cream text-base pt-2 border-t border-vula-border">
+                <div className="flex justify-between font-bold text-vula-dark text-base pt-2 border-t border-vula-border">
                   <span>Total</span>
                   <span>R{(total / 100).toFixed(2)}</span>
                 </div>

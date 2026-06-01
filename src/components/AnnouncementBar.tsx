@@ -13,10 +13,10 @@ export default function AnnouncementBar() {
   const doubled = [...messages, ...messages]
 
   return (
-    <div className="bg-vula-green overflow-hidden py-2">
+    <div className="bg-vula-dark overflow-hidden py-2.5">
       <div className="flex scroll-x whitespace-nowrap">
         {doubled.map((msg, i) => (
-          <span key={i} className="font-sans text-xs text-vula-cream/90 px-8 shrink-0">
+          <span key={i} className="font-sans text-xs font-medium text-vula-cream/90 px-8 shrink-0 tracking-wide">
             {msg}
           </span>
         ))}

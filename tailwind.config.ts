@@ -1,24 +1,40 @@
 import type { Config } from "tailwindcss"
 
-// Vula Master Plan design system — applied to Off the Hook storefront
+// Off the Hook brand — from the official price-list design system.
+// Navy + teal on cream, with white surfaces and peach highlights.
+//
+// Kept under the `vula-` namespace so existing components inherit
+// the new brand automatically without rewriting every className.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // Vula master plan primaries
         vula: {
-          green: "#2C5545",
-          "green-light": "#3A6B57",
-          "green-dark": "#1E3D31",
-          amber: "#C4861A",
-          "amber-light": "#D99B2A",
-          cream: "#F7F4EE",
-          dark: "#080808",
-          "dark-2": "#111111",
-          "dark-3": "#1A1A1A",
-          muted: "#6B7280",
-          border: "#2A2A2A",
+          // PRIMARY = deep navy (header bars, "Deboned Chicken" band, body text)
+          dark:        "#0E2D4D",
+          "dark-soft": "#15375F",
+
+          // SURFACES = white cards on cream page (was dark surfaces)
+          "dark-2":    "#FFFFFF",   // card / sticky surfaces
+          "dark-3":    "#F0EBE0",   // input fields, subtle wells
+
+          // CREAM = page background + light text on dark sections
+          cream:       "#F5F0E6",
+
+          // ACCENT = brand teal ("Fresh Portions" header, R95 price chip, tagline)
+          green:        "#2DAAB5",
+          "green-light":"#38C0CB",
+          "green-dark": "#1F8B95",
+
+          // HIGHLIGHT = warm peach (the *AMENDMENT*/*NEW* rows on the sheet)
+          amber:        "#E8B86E",
+          "amber-light":"#F4D196",
+          peach:        "#F8E8D2",
+
+          // SUPPORTING
+          muted:   "#6B7280",
+          border:  "#E5DFCF",
         },
       },
       fontFamily: {

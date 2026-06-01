@@ -64,27 +64,27 @@ export default function CartPage() {
 
               {/* Name + price */}
               <div className="flex-1 min-w-0">
-                <p className="font-sans font-medium text-vula-cream truncate">{item.name}</p>
+                <p className="font-sans font-semibold text-vula-dark truncate">{item.name}</p>
                 <p className="font-sans text-sm text-vula-muted">
                   R{(item.price_cents / 100).toFixed(2)} each
                 </p>
               </div>
 
               {/* Quantity */}
-              <div className="flex items-center gap-2 border border-vula-border rounded-input px-2 py-1">
+              <div className="flex items-center gap-2 border border-vula-border rounded-input px-2 py-1 bg-vula-cream">
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="text-vula-muted hover:text-vula-cream w-5 text-base font-sans"
+                  className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
                 >−</button>
-                <span className="font-sans text-sm font-medium w-5 text-center">{item.quantity}</span>
+                <span className="font-sans text-sm font-semibold text-vula-dark w-5 text-center">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="text-vula-muted hover:text-vula-cream w-5 text-base font-sans"
+                  className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
                 >+</button>
               </div>
 
               {/* Line total */}
-              <p className="font-sans font-semibold text-vula-cream w-20 text-right">
+              <p className="font-sans font-bold text-vula-dark w-20 text-right">
                 R{((item.price_cents * item.quantity) / 100).toFixed(2)}
               </p>
 
@@ -115,7 +115,7 @@ export default function CartPage() {
               Add R{((50000 - subtotal) / 100).toFixed(2)} more for free delivery
             </p>
           )}
-          <div className="flex justify-between font-sans font-semibold text-vula-cream text-lg">
+          <div className="flex justify-between font-sans font-bold text-vula-dark text-lg">
             <span>Total</span>
             <span>R{(total / 100).toFixed(2)}</span>
           </div>

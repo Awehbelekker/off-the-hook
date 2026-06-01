@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA" className={`${cormorant.variable} ${inter.variable}`}>
-      <body className="min-h-screen bg-vula-dark text-vula-cream antialiased">
+      <body className="min-h-screen bg-vula-cream text-vula-dark antialiased">
         {children}
       </body>
     </html>
