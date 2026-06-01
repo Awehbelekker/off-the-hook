@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Lock, Truck, Clock } from "lucide-react"
 import Header from "@/components/Header"
@@ -37,6 +37,13 @@ export default function CheckoutPage() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to cart if empty — in an effect, never during render (SSR-safe)
+  useEffect(() => {
+    if (items.length === 0 && !submitting) {
+      router.push("/cart")
+    }
+  }, [items.length, submitting, router])
 
   const subtotal = subtotalCents()
   const delivery = subtotal >= 50000 ? 0 : deliveryCents
@@ -78,8 +85,7 @@ export default function CheckoutPage() {
   }
 
   if (items.length === 0) {
-    router.push("/cart")
-    return null
+    return null  // effect above handles the redirect
   }
 
   return (
