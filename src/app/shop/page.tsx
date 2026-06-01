@@ -58,8 +58,8 @@ export default async function ShopPage({
                 className={[
                   "flex items-center gap-1.5 px-4 py-2 rounded-badge font-sans text-sm font-medium transition-colors",
                   active
-                    ? "bg-vula-green text-vula-cream"
-                    : "bg-vula-dark-2 border border-vula-border text-vula-muted hover:text-vula-cream hover:border-vula-green",
+                    ? "bg-vula-green text-white shadow-sm"
+                    : "bg-white border border-vula-border text-vula-dark/70 hover:text-vula-green hover:border-vula-green",
                 ].join(" ")}
               >
                 {emoji && <span>{emoji}</span>}
@@ -73,7 +73,7 @@ export default async function ShopPage({
         {products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((p) => (
-              <Suspense key={p.id} fallback={<div className="card aspect-square animate-pulse bg-vula-dark-3" />}>
+              <Suspense key={p.id} fallback={<div className="card aspect-square animate-pulse bg-vula-dark-3/40" />}>
                 <ProductCard product={p} />
               </Suspense>
             ))}

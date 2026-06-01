@@ -53,7 +53,7 @@ export default function ProductPage() {
       <main className="max-w-5xl mx-auto px-6 py-10 pb-28 md:pb-10">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-vula-muted hover:text-vula-cream font-sans text-sm mb-8 transition-colors"
+          className="flex items-center gap-2 text-vula-muted hover:text-vula-green font-sans text-sm mb-8 transition-colors"
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -64,7 +64,7 @@ export default function ProductPage() {
             {product.image_url ? (
               <Image src={product.image_url} alt={product.name} fill className="object-cover" />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-8xl">🐟</div>
+              <div className="absolute inset-0 flex items-center justify-center text-8xl text-vula-dark/20">🐟</div>
             )}
             {product.is_daily_catch && (
               <span className="absolute top-4 left-4 badge badge-amber flex items-center gap-1">
@@ -114,16 +114,16 @@ export default function ProductPage() {
 
             {/* Price + quantity */}
             <div className="flex items-center gap-6">
-              <p className="font-display text-4xl font-semibold text-vula-cream">R{priceRands}</p>
-              <div className="flex items-center gap-3 border border-vula-border rounded-input px-3 py-2">
+              <p className="font-display text-4xl font-bold text-vula-dark">R{priceRands}</p>
+              <div className="flex items-center gap-3 border border-vula-border rounded-input px-3 py-2 bg-white">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="text-vula-muted hover:text-vula-cream w-6 text-lg font-sans"
+                  className="text-vula-muted hover:text-vula-green w-6 text-lg font-sans"
                 >−</button>
-                <span className="font-sans font-medium w-6 text-center">{qty}</span>
+                <span className="font-sans font-semibold text-vula-dark w-6 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(qty + 1)}
-                  className="text-vula-muted hover:text-vula-cream w-6 text-lg font-sans"
+                  className="text-vula-muted hover:text-vula-green w-6 text-lg font-sans"
                 >+</button>
               </div>
             </div>

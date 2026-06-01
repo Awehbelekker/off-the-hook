@@ -21,7 +21,7 @@ export default async function PaymentSuccessPage({
         </p>
         {order && (
           <p className="font-sans text-xs text-vula-muted mb-8">
-            Reference: <span className="text-vula-cream font-medium">{order.slice(-8).toUpperCase()}</span>
+            Reference: <span className="text-vula-dark font-semibold">{order.slice(-8).toUpperCase()}</span>
           </p>
         )}
 
