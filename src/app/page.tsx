@@ -1,20 +1,24 @@
 import Link from "next/link"
+import { WHATSAPP_DISPLAY, WHATSAPP_DISPLAY_LOCAL, whatsappLink } from "@/lib/whatsapp"
 import { MessageCircle, Package, Truck, Star, ChevronRight } from "lucide-react"
 import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
-import AnnouncementBar from "@/components/AnnouncementBar"
+import AnnouncementBarWrapper from "@/components/AnnouncementBarWrapper"
 import ProductCard from "@/components/ProductCard"
 import Logo from "@/components/Logo"
-import { getProducts } from "@/lib/api"
+import { getFeaturedProductsForStore } from "@/lib/product-overrides-store"
+import { getStoreSettings } from "@/lib/settings-store"
+import { DEFAULT_STORE_SETTINGS } from "@/lib/settings"
 
 export const revalidate = 60
 
 export default async function HomePage() {
-  const products = await getProducts({ limit: 8 }).catch(() => [])
+  const settings = await getStoreSettings().catch(() => DEFAULT_STORE_SETTINGS)
+  const products = await getFeaturedProductsForStore(settings.featured_product_ids, 8).catch(() => [])
 
   return (
     <>
-      <AnnouncementBar />
+      <AnnouncementBarWrapper />
       <Header />
 
       <main className="pb-24 md:pb-0">
@@ -45,8 +49,8 @@ export default async function HomePage() {
             </div>
 
             <p className="font-sans text-lg md:text-xl text-vula-dark/70 max-w-xl mx-auto mb-10 leading-relaxed">
-              Fresh fish this week. Pasture-raised chicken. Frozen seafood.<br />
-              Cape Town delivery — order in 60 seconds on WhatsApp.
+              {settings.hero_tagline}<br />
+              {settings.hero_subtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -55,7 +59,7 @@ export default async function HomePage() {
                 <ChevronRight size={18} />
               </Link>
               <a
-                href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
+                href={whatsappLink("Hi, I'd like to order fresh fish")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-navy text-base px-8 py-4"
@@ -72,7 +76,7 @@ export default async function HomePage() {
                 <span>4.9 · 200+ reviews</span>
               </div>
               <span className="hidden sm:inline">·</span>
-              <span>Free delivery over R500</span>
+              <span>Free delivery over R{(settings.free_delivery_threshold_cents / 100).toFixed(0)}</span>
               <span className="hidden sm:inline">·</span>
               <span>Cape Town only</span>
             </div>
@@ -168,11 +172,11 @@ export default async function HomePage() {
               Order in 60 seconds.
             </h2>
             <p className="font-sans text-white/90 mb-10 text-lg leading-relaxed">
-              Message +27 73 781 5979, tell us what you want, and we handle the rest.
+              Message {WHATSAPP_DISPLAY}, tell us what you want, and we handle the rest.
               Ask about this week&apos;s fresh fish, or order chicken and frozen seafood anytime.
             </p>
             <a
-              href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
+              href={whatsappLink("Hi, I'd like to order fresh fish")}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-navy text-base px-10 py-4 shadow-lg"
@@ -236,8 +240,8 @@ export default async function HomePage() {
 
             {/* Links */}
             <div className="flex flex-col items-center md:items-end gap-2 font-sans text-sm text-vula-muted">
-              <a href="https://wa.me/27737815979" target="_blank" rel="noopener noreferrer" className="hover:text-vula-green transition-colors">
-                WhatsApp: 073 781 5979
+              <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="hover:text-vula-green transition-colors">
+                WhatsApp: {WHATSAPP_DISPLAY_LOCAL}
               </a>
               <a href="mailto:info@offthehook.capetown" className="hover:text-vula-green transition-colors">
                 info@offthehook.capetown

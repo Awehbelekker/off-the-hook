@@ -1,0 +1,98 @@
+import "server-only"
+import { readFile, writeFile, mkdir } from "fs/promises"
+import path from "path"
+import { getProducts, getProduct, updateProduct, type Product, type ProductCategory } from "./api"
+
+const OVERRIDES_FILE = path.join(process.cwd(), "data/product-overrides.json")
+
+export type ProductOverride = Partial<
+  Pick<
+    Product,
+    | "name"
+    | "slug"
+    | "description"
+    | "category"
+    | "price_cents"
+    | "weight_grams"
+    | "serves"
+    | "image_url"
+    | "catch_source"
+    | "fisherman_name"
+    | "is_daily_catch"
+    | "in_stock"
+  >
+>
+
+type OverrideMap = Record<string, ProductOverride>
+
+async function readOverrides(): Promise<OverrideMap> {
+  try {
+    const raw = await readFile(OVERRIDES_FILE, "utf-8")
+    return JSON.parse(raw) as OverrideMap
+  } catch {
+    return {}
+  }
+}
+
+async function writeOverrides(overrides: OverrideMap): Promise<void> {
+  await mkdir(path.dirname(OVERRIDES_FILE), { recursive: true })
+  await writeFile(OVERRIDES_FILE, JSON.stringify(overrides, null, 2), "utf-8")
+}
+
+export function mergeProduct(product: Product, override?: ProductOverride): Product {
+  if (!override) return product
+  return { ...product, ...override, id: product.id }
+}
+
+export async function getProductsForStore(params?: Parameters<typeof getProducts>[0]): Promise<Product[]> {
+  const [products, overrides] = await Promise.all([getProducts(params).catch(() => []), readOverrides()])
+  return products.map((p) => mergeProduct(p, overrides[p.id]))
+}
+
+export async function getProductForStore(slug: string): Promise<Product> {
+  const product = await getProduct(slug)
+  const overrides = await readOverrides()
+  return mergeProduct(product, overrides[product.id])
+}
+
+export async function saveProductUpdate(
+  id: string,
+  data: ProductOverride
+): Promise<{ product: Product; source: "vula" | "local" }> {
+  try {
+    const product = await updateProduct(id, data)
+    return { product, source: "vula" }
+  } catch {
+    const overrides = await readOverrides()
+    overrides[id] = { ...overrides[id], ...data }
+    await writeOverrides(overrides)
+
+    const base = await getProducts().then((all) => all.find((p) => p.id === id))
+    if (!base) throw new Error("Product not found")
+    return { product: mergeProduct(base, overrides[id]), source: "local" }
+  }
+}
+
+export async function getFeaturedProductsForStore(featuredIds: string[], limit = 8): Promise<Product[]> {
+  const all = await getProductsForStore({ inStockOnly: false })
+  if (featuredIds.length === 0) return all.slice(0, limit)
+
+  const featured = featuredIds
+    .map((id) => all.find((p) => p.id === id || p.slug === id))
+    .filter((p): p is Product => Boolean(p))
+
+  if (featured.length >= limit) return featured.slice(0, limit)
+  const rest = all.filter((p) => !featuredIds.includes(p.id) && !featuredIds.includes(p.slug))
+  return [...featured, ...rest].slice(0, limit)
+}
+
+export const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
+  { value: "fresh_fish", label: "Fresh fish" },
+  { value: "fresh_chicken", label: "Fresh chicken" },
+  { value: "frozen_chicken", label: "Frozen chicken" },
+  { value: "frozen_seafood", label: "Frozen seafood" },
+  { value: "extras", label: "Extras" },
+  { value: "linefish", label: "Linefish" },
+  { value: "shellfish", label: "Shellfish" },
+  { value: "frozen", label: "Frozen" },
+]

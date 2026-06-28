@@ -1,16 +1,12 @@
 "use client"
 
-const messages = [
-  "🐟  Fresh fish this week: Yellowfin Tuna R290/kg · Hake R160/kg · Kingklip R240/kg",
-  "🐓  Pasture-raised chicken — GMO-free · No hormones · No brine",
-  "🦐  Frozen seafood packs — Calamari, Prawns, Mussels & more",
-  "📦  Order by 10am for same-day delivery — Cape Town",
-  "🟢  WhatsApp ordering: +27 73 781 5979 — reply in minutes",
-  "✅  All items sold by weight — what you order is what you pay for",
-]
+type AnnouncementBarProps = {
+  messages: string[]
+}
 
-export default function AnnouncementBar() {
-  const doubled = [...messages, ...messages]
+export default function AnnouncementBar({ messages }: AnnouncementBarProps) {
+  const items = messages.length > 0 ? messages : ["Welcome to Off the Hook — Cape Town fresh delivery"]
+  const doubled = [...items, ...items]
 
   return (
     <div className="bg-vula-dark overflow-hidden py-2.5">

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CheckCircle, MessageCircle } from "lucide-react"
+import { whatsappLink } from "@/lib/whatsapp"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Order confirmed" }
@@ -44,7 +45,7 @@ export default async function PaymentSuccessPage({
 
         <div className="flex flex-col gap-3">
           <a
-            href="https://wa.me/27737815979"
+            href={whatsappLink()}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary w-full justify-center"

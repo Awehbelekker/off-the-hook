@@ -5,10 +5,12 @@ export const dynamic = "force-dynamic"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Lock, Truck, Clock } from "lucide-react"
+import { WHATSAPP_DISPLAY } from "@/lib/whatsapp"
 import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
 import { useCartStore } from "@/store/cart"
 import { createCheckout } from "@/lib/api"
+import { useStoreSettings } from "@/components/StoreSettingsProvider"
 
 type DeliverySlot = "morning" | "afternoon" | "express"
 
@@ -25,6 +27,7 @@ type FormState = {
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, sessionId, subtotalCents, deliveryCents, clearCart } = useCartStore()
+  const settings = useStoreSettings()
 
   const [form, setForm] = useState<FormState>({
     customerName: "",
@@ -46,13 +49,16 @@ export default function CheckoutPage() {
   }, [items.length, submitting, router])
 
   const subtotal = subtotalCents()
-  const delivery = subtotal >= 50000 ? 0 : deliveryCents
-  const total = subtotal + delivery
+  const delivery = deliveryCents()
+  const expressExtra = settings.express_delivery_extra_cents
+  const total =
+    subtotal +
+    (form.deliverySlot === "express" ? delivery + expressExtra : delivery)
 
   const SLOTS = [
     { value: "morning", label: "Morning", detail: "08:00–12:00", icon: Clock, extra: "" },
     { value: "afternoon", label: "Afternoon", detail: "12:00–17:00", icon: Clock, extra: "" },
-    { value: "express", label: "Express", detail: "2-hour window", icon: Truck, extra: "+R50" },
+    { value: "express", label: "Express", detail: "2-hour window", icon: Truck, extra: `+R${(settings.express_delivery_extra_cents / 100).toFixed(0)}` },
   ]
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -103,7 +109,7 @@ export default function CheckoutPage() {
 
               {[
                 { id: "customerName", label: "Full name", type: "text", required: true, placeholder: "Your name" },
-                { id: "customerPhone", label: "WhatsApp number", type: "tel", required: true, placeholder: "+27 73 781 5979" },
+                { id: "customerPhone", label: "WhatsApp number", type: "tel", required: true, placeholder: WHATSAPP_DISPLAY },
                 { id: "customerEmail", label: "Email (optional)", type: "email", required: false, placeholder: "you@example.com" },
               ].map(({ id, label, type, required, placeholder }) => (
                 <div key={id} className="flex flex-col gap-1.5">
@@ -195,7 +201,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-vula-muted mb-2">
                   <span>Delivery ({form.deliverySlot})</span>
-                  <span>{form.deliverySlot === "express" ? "R130.00" : delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
+                  <span>{form.deliverySlot === "express" ? `R${((delivery + expressExtra) / 100).toFixed(2)}` : delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between font-bold text-vula-dark text-base pt-2 border-t border-vula-border">
                   <span>Total</span>

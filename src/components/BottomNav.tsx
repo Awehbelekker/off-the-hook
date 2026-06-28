@@ -6,7 +6,9 @@ import { Home, ShoppingBag, MessageCircle, ShoppingCart, User } from "lucide-rea
 import { useCartStore } from "@/store/cart"
 import { clsx } from "clsx"
 
-const WA_LINK = "https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
+import { whatsappLink } from "@/lib/whatsapp"
+
+const WA_LINK = whatsappLink("Hi, I'd like to order fresh fish")
 
 export default function BottomNav() {
   const pathname = usePathname()

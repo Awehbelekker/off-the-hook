@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { XCircle, ShoppingCart, MessageCircle } from "lucide-react"
+import { whatsappLink } from "@/lib/whatsapp"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Payment cancelled" }
@@ -19,7 +20,7 @@ export default function PaymentCancelPage() {
             Try again
           </Link>
           <a
-            href="https://wa.me/27737815979?text=Hi%2C+I+had+trouble+completing+my+payment"
+            href={whatsappLink("Hi, I had trouble completing my payment")}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-ghost w-full justify-center"

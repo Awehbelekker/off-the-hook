@@ -3,3 +3,5 @@ node_modules
 .next
 /.next/
 *.tsbuildinfo
+data/google-drive.json
+public/uploads/

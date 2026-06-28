@@ -1,17 +1,20 @@
 "use client"
 
 import Link from "next/link"
+import { whatsappLink } from "@/lib/whatsapp"
 import Image from "next/image"
 import { Trash2, ShoppingBag, ChevronRight, MessageCircle } from "lucide-react"
 import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
 import { useCartStore } from "@/store/cart"
+import { useStoreSettings } from "@/components/StoreSettingsProvider"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, subtotalCents, deliveryCents } = useCartStore()
+  const settings = useStoreSettings()
 
   const subtotal = subtotalCents()
-  const delivery = subtotal >= 50000 ? 0 : deliveryCents  // Free delivery over R500
+  const delivery = deliveryCents()
   const total = subtotal + delivery
 
   if (items.length === 0) {
@@ -28,7 +31,7 @@ export default function CartPage() {
               Browse the catch
             </Link>
             <a
-              href="https://wa.me/27737815979?text=Hi%2C+I%27d+like+to+order+fresh+fish"
+              href={whatsappLink("Hi, I'd like to order fresh fish")}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-ghost"
@@ -49,11 +52,9 @@ export default function CartPage() {
       <main className="max-w-3xl mx-auto px-6 py-10 pb-28 md:pb-10">
         <h1 className="font-display text-4xl font-semibold mb-8">Your cart</h1>
 
-        {/* Items */}
         <div className="flex flex-col gap-4 mb-8">
           {items.map((item) => (
             <div key={item.id} className="card flex items-center gap-4">
-              {/* Image */}
               <div className="relative w-16 h-16 rounded-input overflow-hidden bg-vula-dark-3 shrink-0">
                 {item.image_url ? (
                   <Image src={item.image_url} alt={item.name} fill className="object-cover" />
@@ -62,7 +63,6 @@ export default function CartPage() {
                 )}
               </div>
 
-              {/* Name + price */}
               <div className="flex-1 min-w-0">
                 <p className="font-sans font-semibold text-vula-dark truncate">{item.name}</p>
                 <p className="font-sans text-sm text-vula-muted">
@@ -70,7 +70,6 @@ export default function CartPage() {
                 </p>
               </div>
 
-              {/* Quantity */}
               <div className="flex items-center gap-2 border border-vula-border rounded-input px-2 py-1 bg-vula-cream">
                 <button
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -83,12 +82,10 @@ export default function CartPage() {
                 >+</button>
               </div>
 
-              {/* Line total */}
               <p className="font-sans font-bold text-vula-dark w-20 text-right">
                 R{((item.price_cents * item.quantity) / 100).toFixed(2)}
               </p>
 
-              {/* Remove */}
               <button
                 onClick={() => removeItem(item.id)}
                 className="text-vula-muted hover:text-red-400 transition-colors ml-2"
@@ -100,7 +97,6 @@ export default function CartPage() {
           ))}
         </div>
 
-        {/* Totals */}
         <div className="card mb-6">
           <div className="flex justify-between font-sans text-sm text-vula-muted mb-3">
             <span>Subtotal</span>
@@ -110,9 +106,9 @@ export default function CartPage() {
             <span>Delivery</span>
             <span>{delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
           </div>
-          {subtotal < 50000 && (
+          {subtotal < settings.free_delivery_threshold_cents && (
             <p className="font-sans text-xs text-vula-muted mb-4">
-              Add R{((50000 - subtotal) / 100).toFixed(2)} more for free delivery
+              Add R{((settings.free_delivery_threshold_cents - subtotal) / 100).toFixed(2)} more for free delivery
             </p>
           )}
           <div className="flex justify-between font-sans font-bold text-vula-dark text-lg">
@@ -121,7 +117,6 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* CTA */}
         <Link href="/checkout" className="btn-primary w-full justify-center text-base py-4">
           Proceed to checkout
           <ChevronRight size={18} />

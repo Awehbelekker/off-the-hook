@@ -6,7 +6,8 @@ import Image from "next/image"
 import { ShoppingCart, MessageCircle, MapPin, User, ArrowLeft, Zap } from "lucide-react"
 import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
-import { getProduct, type Product } from "@/lib/api"
+import { type Product } from "@/lib/api"
+import { whatsappLink } from "@/lib/whatsapp"
 import { useCartStore } from "@/store/cart"
 
 export default function ProductPage() {
@@ -19,7 +20,8 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false)
 
   useEffect(() => {
-    getProduct(slug)
+    fetch(`/store/products/${slug}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setProduct)
       .catch(() => router.push("/shop"))
       .finally(() => setLoading(false))
@@ -45,7 +47,7 @@ export default function ProductPage() {
   if (!product) return null
 
   const priceRands = (product.price_cents / 100).toFixed(2)
-  const waText = encodeURIComponent(`Hi, I'd like to order ${qty}x ${product.name} (R${priceRands} each)`)
+  const waMessage = `Hi, I'd like to order ${qty}x ${product.name} (R${priceRands} each)`
 
   return (
     <>
@@ -143,7 +145,7 @@ export default function ProductPage() {
               </button>
 
               <a
-                href={`https://wa.me/27737815979?text=${waText}`}
+                href={whatsappLink(waMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-ghost w-full justify-center text-base py-4"
