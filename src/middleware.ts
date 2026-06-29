@@ -30,6 +30,9 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin/api/auth")) {
     return NextResponse.next()
   }
+  if (pathname === "/admin/api/google/callback") {
+    return NextResponse.next()
+  }
 
   if (pathname.startsWith("/admin")) {
     if (pathname === "/admin/login") {
