@@ -50,8 +50,10 @@ export default function GoogleDriveConnection() {
             <p className="font-sans text-sm text-vula-muted mt-1">
               Add <code className="text-xs">GOOGLE_CLIENT_ID</code> and{" "}
               <code className="text-xs">GOOGLE_CLIENT_SECRET</code> in Vercel, then create OAuth
-              credentials in Google Cloud Console with redirect URI{" "}
-              <code className="text-xs break-all">/api/oauth/google/callback</code>.
+              Add this exact redirect URI in Google Cloud Console:{" "}
+              <code className="text-xs break-all block mt-1 p-2 bg-vula-cream rounded">
+                https://offthehook.co.za/admin/api/google/callback
+              </code>
             </p>
           </div>
         </div>
