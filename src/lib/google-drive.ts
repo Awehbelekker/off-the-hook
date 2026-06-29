@@ -17,10 +17,11 @@ export function googleDriveConfigured(): boolean {
   )
 }
 
+/** Same callback path as Awake — register `{origin}/api/oauth/google/callback` in Google Cloud. */
 export function getGoogleRedirectUri(origin?: string): string {
-  if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI
+  if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI.trim()
   const base = origin || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-  return `${base.replace(/\/$/, "")}/admin/api/google/callback`
+  return `${base.replace(/\/$/, "")}/api/oauth/google/callback`
 }
 
 export async function loadGoogleCredentials(): Promise<GoogleDriveCredentials | null> {
