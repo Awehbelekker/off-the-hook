@@ -1,5 +1,7 @@
+// Tenant-portable: set NEXT_PUBLIC_VULA_TENANT_ID to reuse this exact client for any
+// store (the shared connector pattern). Defaults to off-the-hook.
 const VULA_API = process.env.NEXT_PUBLIC_VULA_API_URL || "https://api.vula.co.za"
-const TENANT_ID = "off-the-hook"
+const TENANT_ID = process.env.NEXT_PUBLIC_VULA_TENANT_ID || "off-the-hook"
 
 async function vula<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${VULA_API}/v1/commerce/${TENANT_ID}${path}`, {
@@ -252,4 +254,32 @@ export async function uploadProductImage(file: File): Promise<{ url: string }> {
     throw new Error(`Upload failed: ${res.status}`)
   }
   return res.json()
+}
+
+// ── Tenant config (control plane): theme + enabled modules ────────────────────
+// Drives brand flow-through (accent/logo/fonts) and which features a store exposes.
+// Used by the storefront shell + the Puck page builder (P3).
+
+export type TenantConfig = {
+  tenant_id: string
+  display_name?: string
+  business_type?: string
+  theme: Record<string, string>
+  store_url?: string
+  modules: string[]
+  default_payment_provider?: string
+  status?: string
+}
+
+export async function getTenantConfig(): Promise<TenantConfig> {
+  const res = await fetch(`${VULA_API}/v1/tenants/${TENANT_ID}`, {
+    headers: { "X-API-Key": process.env.VULA_API_KEY || "" },
+    next: { revalidate: 300 },
+  })
+  if (!res.ok) throw new Error(`Tenant config ${res.status}`)
+  return res.json()
+}
+
+export async function getTenantTheme(): Promise<Record<string, string>> {
+  return getTenantConfig().then((t) => t.theme || {}).catch(() => ({}))
 }
