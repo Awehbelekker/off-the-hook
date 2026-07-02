@@ -1,6 +1,6 @@
 // Tenant-portable: set NEXT_PUBLIC_VULA_TENANT_ID to reuse this exact client for any
 // store (the shared connector pattern). Defaults to off-the-hook.
-const VULA_API = process.env.NEXT_PUBLIC_VULA_API_URL || "https://api.vula.co.za"
+const VULA_API = process.env.NEXT_PUBLIC_VULA_API_URL || "https://vula-group-production.up.railway.app"
 const TENANT_ID = process.env.NEXT_PUBLIC_VULA_TENANT_ID || "off-the-hook"
 
 async function vula<T>(path: string, options?: RequestInit): Promise<T> {
