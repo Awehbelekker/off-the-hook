@@ -14,6 +14,11 @@ export type ProductOverride = Partial<
     | "category"
     | "price_cents"
     | "weight_grams"
+    | "reference_weight_g"
+    | "pricing_mode"
+    | "price_per_kg_cents"
+    | "min_weight_g"
+    | "max_weight_g"
     | "serves"
     | "image_url"
     | "catch_source"
@@ -40,8 +45,9 @@ async function writeOverrides(overrides: OverrideMap): Promise<void> {
 }
 
 export function mergeProduct(product: Product, override?: ProductOverride): Product {
-  if (!override) return product
-  return { ...product, ...override, id: product.id }
+  if (!override) return { ...product, pricing_mode: product.pricing_mode ?? "fixed" }
+  const merged = { ...product, ...override, id: product.id }
+  return { ...merged, pricing_mode: merged.pricing_mode ?? "fixed" }
 }
 
 export async function getProductsForStore(params?: Parameters<typeof getProducts>[0]): Promise<Product[]> {

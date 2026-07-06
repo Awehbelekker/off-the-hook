@@ -37,6 +37,8 @@ export type ProductCategory =
   | "smoked"
   | "frozen"
 
+export type PricingMode = "fixed" | "by_weight"
+
 export type Product = {
   id: string
   slug: string
@@ -44,6 +46,11 @@ export type Product = {
   description: string
   category: ProductCategory
   price_cents: number
+  pricing_mode?: PricingMode
+  price_per_kg_cents?: number
+  min_weight_g?: number
+  max_weight_g?: number
+  reference_weight_g?: number
   weight_grams?: number
   serves?: string
   image_url?: string
@@ -117,6 +124,11 @@ export async function updateProduct(
       | "image_url"
       | "category"
       | "weight_grams"
+      | "reference_weight_g"
+      | "pricing_mode"
+      | "price_per_kg_cents"
+      | "min_weight_g"
+      | "max_weight_g"
       | "serves"
       | "catch_source"
       | "fisherman_name"

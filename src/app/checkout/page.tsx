@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, sessionId, subtotalCents, deliveryCents, clearCart } = useCartStore()
   const settings = useStoreSettings()
+  const cartHasWeightItems = items.some((i) => i.pricing_mode === "by_weight")
 
   const [form, setForm] = useState<FormState>({
     customerName: "",
@@ -45,8 +46,12 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (items.length === 0 && !submitting) {
       router.push("/cart")
+      return
     }
-  }, [items.length, submitting, router])
+    if (cartHasWeightItems) {
+      router.push("/cart")
+    }
+  }, [items.length, submitting, router, cartHasWeightItems])
 
   const subtotal = subtotalCents()
   const delivery = deliveryCents()

@@ -2,33 +2,19 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingCart, Zap } from "lucide-react"
+import { ShoppingCart, Zap, Scale } from "lucide-react"
 import { clsx } from "clsx"
 import { useCartStore } from "@/store/cart"
-
-type Product = {
-  id: string
-  slug: string
-  name: string
-  description: string
-  category: string
-  price_cents: number
-  weight_grams?: number
-  serves?: string
-  image_url?: string
-  catch_source?: string
-  fisherman_name?: string
-  is_daily_catch: boolean
-  in_stock: boolean
-}
+import type { Product } from "@/lib/api"
+import { formatProductPrice, isByWeight } from "@/lib/pricing"
 
 export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem)
-  const priceRands = (product.price_cents / 100).toFixed(2)
+  const byWeight = isByWeight(product)
+  const priceLabel = formatProductPrice(product)
 
   return (
     <div className="card group flex flex-col gap-4 hover:border-vula-green/60 hover:shadow-md transition-all">
-      {/* Image */}
       <Link href={`/shop/${product.slug}`} className="relative aspect-square overflow-hidden rounded-card bg-vula-dark-3 block">
         {product.image_url ? (
           <Image
@@ -42,11 +28,15 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="absolute inset-0 flex items-center justify-center text-4xl text-vula-dark/30">🐟</div>
         )}
 
-        {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {product.is_daily_catch && (
             <span className="badge badge-amber text-[10px] flex items-center gap-1">
               <Zap size={10} /> Daily catch
+            </span>
+          )}
+          {byWeight && (
+            <span className="badge bg-vula-green text-white text-[10px] flex items-center gap-1">
+              <Scale size={10} /> By weight
             </span>
           )}
           {!product.in_stock && (
@@ -55,7 +45,6 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      {/* Details */}
       <div className="flex flex-col gap-2 flex-1">
         {product.catch_source && (
           <p className="font-sans text-[11px] text-vula-green-dark uppercase tracking-widest font-semibold">
@@ -75,23 +64,44 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
 
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-vula-border">
-          <p className="font-sans font-bold text-vula-dark text-base">
-            R{priceRands}
-          </p>
+          <p className="font-sans font-bold text-vula-dark text-base">{priceLabel}</p>
 
-          <button
-            disabled={!product.in_stock}
-            onClick={() => addItem({ id: product.id, name: product.name, price_cents: product.price_cents, image_url: product.image_url })}
-            className={clsx(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-semibold transition-colors",
-              product.in_stock
-                ? "bg-vula-green text-white hover:bg-vula-green-light"
-                : "bg-vula-border text-vula-muted cursor-not-allowed"
-            )}
-          >
-            <ShoppingCart size={13} />
-            Add
-          </button>
+          {byWeight ? (
+            <Link
+              href={`/shop/${product.slug}`}
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-semibold transition-colors",
+                product.in_stock
+                  ? "bg-vula-green text-white hover:bg-vula-green-light"
+                  : "bg-vula-border text-vula-muted cursor-not-allowed pointer-events-none"
+              )}
+            >
+              <Scale size={13} />
+              Choose weight
+            </Link>
+          ) : (
+            <button
+              disabled={!product.in_stock}
+              onClick={() =>
+                addItem({
+                  id: product.id,
+                  name: product.name,
+                  price_cents: product.price_cents,
+                  image_url: product.image_url,
+                  pricing_mode: "fixed",
+                })
+              }
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-semibold transition-colors",
+                product.in_stock
+                  ? "bg-vula-green text-white hover:bg-vula-green-light"
+                  : "bg-vula-border text-vula-muted cursor-not-allowed"
+              )}
+            >
+              <ShoppingCart size={13} />
+              Add
+            </button>
+          )}
         </div>
       </div>
     </div>

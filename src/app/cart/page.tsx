@@ -8,14 +8,17 @@ import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
 import { useCartStore } from "@/store/cart"
 import { useStoreSettings } from "@/components/StoreSettingsProvider"
+import { buildWhatsAppOrderMessage } from "@/lib/order-message"
+import { formatWeightKg } from "@/lib/pricing"
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotalCents, deliveryCents } = useCartStore()
+  const { items, removeItem, updateQuantity, subtotalCents, deliveryCents, hasByWeightItems } = useCartStore()
   const settings = useStoreSettings()
 
   const subtotal = subtotalCents()
   const delivery = deliveryCents()
   const total = subtotal + delivery
+  const whatsappOrder = hasByWeightItems()
 
   if (items.length === 0) {
     return (
@@ -52,9 +55,15 @@ export default function CartPage() {
       <main className="max-w-3xl mx-auto px-6 py-10 pb-28 md:pb-10">
         <h1 className="font-display text-4xl font-semibold mb-8">Your cart</h1>
 
+        {whatsappOrder && (
+          <p className="font-sans text-sm text-vula-muted bg-vula-green/10 rounded-input px-4 py-3 mb-6">
+            Fresh fish orders are confirmed on WhatsApp — we&apos;ll weigh and pack to your request.
+          </p>
+        )}
+
         <div className="flex flex-col gap-4 mb-8">
           {items.map((item) => (
-            <div key={item.id} className="card flex items-center gap-4">
+            <div key={item.lineId} className="card flex items-start gap-4">
               <div className="relative w-16 h-16 rounded-input overflow-hidden bg-vula-dark-3 shrink-0">
                 {item.image_url ? (
                   <Image src={item.image_url} alt={item.name} fill className="object-cover" />
@@ -64,31 +73,47 @@ export default function CartPage() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-sans font-semibold text-vula-dark truncate">{item.name}</p>
-                <p className="font-sans text-sm text-vula-muted">
-                  R{(item.price_cents / 100).toFixed(2)} each
-                </p>
+                <p className="font-sans font-semibold text-vula-dark">{item.name}</p>
+                {item.pricing_mode === "by_weight" ? (
+                  <>
+                    <p className="font-sans text-sm text-vula-muted mt-1">
+                      {item.requested_weight_g ? formatWeightKg(item.requested_weight_g) : "—"} @ R{(item.price_cents / 100).toFixed(0)}/kg
+                    </p>
+                    {item.special_requests && (
+                      <p className="font-sans text-xs text-vula-muted mt-1 italic">
+                        &ldquo;{item.special_requests}&rdquo;
+                      </p>
+                    )}
+                    <p className="font-sans text-xs text-vula-green mt-1">Estimated · confirmed on WhatsApp</p>
+                  </>
+                ) : (
+                  <p className="font-sans text-sm text-vula-muted">
+                    R{(item.price_cents / 100).toFixed(2)} each
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 border border-vula-border rounded-input px-2 py-1 bg-vula-cream">
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
-                >−</button>
-                <span className="font-sans text-sm font-semibold text-vula-dark w-5 text-center">{item.quantity}</span>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
-                >+</button>
-              </div>
+              {item.pricing_mode === "fixed" ? (
+                <div className="flex items-center gap-2 border border-vula-border rounded-input px-2 py-1 bg-vula-cream">
+                  <button
+                    onClick={() => updateQuantity(item.lineId, item.quantity - 1)}
+                    className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
+                  >−</button>
+                  <span className="font-sans text-sm font-semibold text-vula-dark w-5 text-center">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.lineId, item.quantity + 1)}
+                    className="text-vula-muted hover:text-vula-green w-5 text-base font-sans"
+                  >+</button>
+                </div>
+              ) : null}
 
-              <p className="font-sans font-bold text-vula-dark w-20 text-right">
-                R{((item.price_cents * item.quantity) / 100).toFixed(2)}
+              <p className="font-sans font-bold text-vula-dark w-20 text-right shrink-0">
+                R{(item.line_total_cents / 100).toFixed(2)}
               </p>
 
               <button
-                onClick={() => removeItem(item.id)}
-                className="text-vula-muted hover:text-red-400 transition-colors ml-2"
+                onClick={() => removeItem(item.lineId)}
+                className="text-vula-muted hover:text-red-400 transition-colors ml-2 shrink-0"
                 aria-label="Remove"
               >
                 <Trash2 size={16} />
@@ -99,31 +124,49 @@ export default function CartPage() {
 
         <div className="card mb-6">
           <div className="flex justify-between font-sans text-sm text-vula-muted mb-3">
-            <span>Subtotal</span>
+            <span>{whatsappOrder ? "Estimated subtotal" : "Subtotal"}</span>
             <span>R{(subtotal / 100).toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-sans text-sm text-vula-muted mb-4 pb-4 border-b border-vula-border">
-            <span>Delivery</span>
-            <span>{delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
-          </div>
-          {subtotal < settings.free_delivery_threshold_cents && (
-            <p className="font-sans text-xs text-vula-muted mb-4">
-              Add R{((settings.free_delivery_threshold_cents - subtotal) / 100).toFixed(2)} more for free delivery
-            </p>
+          {!whatsappOrder && (
+            <>
+              <div className="flex justify-between font-sans text-sm text-vula-muted mb-4 pb-4 border-b border-vula-border">
+                <span>Delivery</span>
+                <span>{delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
+              </div>
+              {subtotal < settings.free_delivery_threshold_cents && (
+                <p className="font-sans text-xs text-vula-muted mb-4">
+                  Add R{((settings.free_delivery_threshold_cents - subtotal) / 100).toFixed(2)} more for free delivery
+                </p>
+              )}
+            </>
           )}
           <div className="flex justify-between font-sans font-bold text-vula-dark text-lg">
-            <span>Total</span>
+            <span>{whatsappOrder ? "Estimated total" : "Total"}</span>
             <span>R{(total / 100).toFixed(2)}</span>
           </div>
         </div>
 
-        <Link href="/checkout" className="btn-primary w-full justify-center text-base py-4">
-          Proceed to checkout
-          <ChevronRight size={18} />
-        </Link>
+        {whatsappOrder ? (
+          <a
+            href={whatsappLink(buildWhatsAppOrderMessage(items))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary w-full justify-center text-base py-4"
+          >
+            <MessageCircle size={18} />
+            Complete order on WhatsApp
+          </a>
+        ) : (
+          <Link href="/checkout" className="btn-primary w-full justify-center text-base py-4">
+            Proceed to checkout
+            <ChevronRight size={18} />
+          </Link>
+        )}
 
         <p className="font-sans text-xs text-vula-muted text-center mt-4">
-          Secure payment via Yoco · POPIA compliant · Cape Town delivery only
+          {whatsappOrder
+            ? "No online payment for weight items — we confirm your order on WhatsApp"
+            : "Secure payment via Yoco · POPIA compliant · Cape Town delivery only"}
         </p>
       </main>
       <BottomNav />
