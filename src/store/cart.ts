@@ -18,6 +18,8 @@ export type AddCartItemInput = {
   special_requests?: string
   price_per_kg_cents?: number
   quantity?: number
+  variant_id?: string
+  variant_label?: string
 }
 
 type CartStore = {
@@ -59,6 +61,8 @@ function buildLine(product: AddCartItemInput): OrderLineItem {
       requested_weight_g: weightG,
       special_requests: product.special_requests?.trim() || undefined,
       line_total_cents: calculateWeightLineTotalCents(perKg, weightG),
+      variant_id: product.variant_id,
+      variant_label: product.variant_label,
     }
   }
 
@@ -71,6 +75,8 @@ function buildLine(product: AddCartItemInput): OrderLineItem {
     image_url: product.image_url,
     pricing_mode: "fixed",
     line_total_cents: product.price_cents * quantity,
+    variant_id: product.variant_id,
+    variant_label: product.variant_label,
   }
 }
 
@@ -100,7 +106,9 @@ export const useCartStore = create<CartStore>()(
         const { items } = get()
 
         if (line.pricing_mode === "fixed") {
-          const existing = items.find((i) => i.id === product.id && i.pricing_mode === "fixed")
+          const existing = items.find(
+            (i) => i.id === product.id && i.pricing_mode === "fixed" && i.variant_id === line.variant_id
+          )
           if (existing) {
             const newQty = existing.quantity + line.quantity
             set({
@@ -152,7 +160,7 @@ export const useCartStore = create<CartStore>()(
         const fixedItems = items.filter((i) => i.pricing_mode === "fixed")
         await syncCartAPI(
           sessionId,
-          fixedItems.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+          fixedItems.map((i) => ({ product_id: i.id, quantity: i.quantity, variant_id: i.variant_id })),
         )
       },
 

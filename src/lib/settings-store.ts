@@ -1,5 +1,5 @@
 import "server-only"
-import { readFile, writeFile } from "fs/promises"
+import { readFile } from "fs/promises"
 import path from "path"
 import { DEFAULT_STORE_SETTINGS, mergeStoreSettings, type StoreSettings } from "./settings"
 
@@ -41,27 +41,4 @@ export async function getStoreSettings(): Promise<StoreSettings> {
   if (fromFile) return fromFile
 
   return DEFAULT_STORE_SETTINGS
-}
-
-export async function saveStoreSettings(settings: StoreSettings): Promise<{ ok: boolean; source: string }> {
-  try {
-    const res = await fetch(`${VULA_API}/v1/commerce/${TENANT_ID}/settings`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": process.env.VULA_API_KEY || "",
-      },
-      body: JSON.stringify(settings),
-    })
-    if (res.ok) return { ok: true, source: "vula" }
-  } catch {
-    // fall through to local file
-  }
-
-  try {
-    await writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), "utf-8")
-    return { ok: true, source: "local" }
-  } catch {
-    return { ok: false, source: "none" }
-  }
 }

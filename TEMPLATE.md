@@ -24,6 +24,20 @@ for a standard storefront.
    when a tenant updates their own branding.
 6. **Build pages** in the Vula dashboard's Pages tab (Puck editor) — `/p/[slug]` renders them here.
 
+## One dashboard for every storefront — no local product/settings admin
+
+A storefront never gets its own product or settings admin. Every tenant's catalogue and store
+settings (hero copy, announcements, delivery fees, cutoff time, featured products) are edited in
+the Vula dashboard and read here via the public `GET /v1/commerce/{tenant}/products`,
+`/products/{slug}`, and `/settings` endpoints — never through a local write path. This repo used
+to have its own `/admin/products` and `/admin/settings` pages that called backend routes which
+didn't exist, silently falling through to writing `data/product-overrides.json` /
+`data/store-settings.json` on the storefront's own disk — invisible to the real dashboard and at
+risk of being lost on redeploy. Those pages are retired (now a short "moved to the dashboard"
+message); don't rebuild them for this or any future storefront. If a new tenant genuinely needs a
+setting this schema doesn't cover yet, add the field to the Vula backend (`commerce_products` /
+`commerce_order_settings`) and dashboard, not a local JSON file here.
+
 ## Known drift risk
 
 The Puck block library (`src/puck.config.tsx`) is a **hand-synced copy** of

@@ -368,6 +368,7 @@ type LiveProduct = {
   id?: string; slug: string; name: string; category?: string; sold_by?: string;
   price_cents?: number; sale_price_cents?: number | null; sale_ends_at?: string | null;
   image_url?: string | null; images?: string[] | null; is_daily_catch?: boolean;
+  variant_price_range?: { min: number; max: number } | null;
 };
 
 function priceParts(p: LiveProduct) {
@@ -409,9 +410,15 @@ function LiveProducts({ title, category, count, linkBase, mode }: { title?: stri
                 <div className="px-3 py-2.5">
                   <div className="font-semibold text-sm mb-1">{p.name}</div>
                   <div className="text-sm">
-                    <span className="font-bold" style={{ color: "var(--brand-accent, #0E7C7B)" }}>{R(pr.now)}</span>
-                    {pr.was ? <span className="ml-1.5 text-gray-400 line-through text-xs">{R(pr.was)}</span> : null}
-                    <span className="text-gray-400 text-xs">{p.sold_by === "kg" ? " /kg" : ""}</span>
+                    {p.variant_price_range ? (
+                      <span className="font-bold" style={{ color: "var(--brand-accent, #0E7C7B)" }}>
+                        {p.variant_price_range.min === p.variant_price_range.max ? R(p.variant_price_range.min) : `From ${R(p.variant_price_range.min)}`}
+                      </span>
+                    ) : (<>
+                      <span className="font-bold" style={{ color: "var(--brand-accent, #0E7C7B)" }}>{R(pr.now)}</span>
+                      {pr.was ? <span className="ml-1.5 text-gray-400 line-through text-xs">{R(pr.was)}</span> : null}
+                      <span className="text-gray-400 text-xs">{p.sold_by === "kg" ? " /kg" : ""}</span>
+                    </>)}
                   </div>
                 </div>
               </a>

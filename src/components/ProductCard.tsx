@@ -2,15 +2,16 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingCart, Zap, Scale } from "lucide-react"
+import { ShoppingCart, Zap, Scale, Tag } from "lucide-react"
 import { clsx } from "clsx"
 import { useCartStore } from "@/store/cart"
 import type { Product } from "@/lib/api"
-import { formatProductPrice, isByWeight } from "@/lib/pricing"
+import { formatProductPrice, isByWeight, hasVariants } from "@/lib/pricing"
 
 export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem)
   const byWeight = isByWeight(product)
+  const needsOptions = hasVariants(product)
   const priceLabel = formatProductPrice(product)
 
   return (
@@ -78,6 +79,19 @@ export default function ProductCard({ product }: { product: Product }) {
             >
               <Scale size={13} />
               Choose weight
+            </Link>
+          ) : needsOptions ? (
+            <Link
+              href={`/shop/${product.slug}`}
+              className={clsx(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-input text-xs font-sans font-semibold transition-colors",
+                product.in_stock
+                  ? "bg-vula-green text-white hover:bg-vula-green-light"
+                  : "bg-vula-border text-vula-muted cursor-not-allowed pointer-events-none"
+              )}
+            >
+              <Tag size={13} />
+              Choose options
             </Link>
           ) : (
             <button

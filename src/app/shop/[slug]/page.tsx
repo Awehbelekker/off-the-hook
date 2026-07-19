@@ -34,6 +34,7 @@ export default function ProductPage() {
   const [weightKg, setWeightKg] = useState(1)
   const [specialRequests, setSpecialRequests] = useState("")
   const [weightError, setWeightError] = useState<string | null>(null)
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch(`/store/products/${slug}`)
@@ -51,10 +52,26 @@ export default function ProductPage() {
     ? product.price_per_kg_cents ?? product.price_cents
     : 0
   const weightG = Math.round(weightKg * 1000)
+
+  const optionNames = product?.options ?? []
+  const activeVariants = (product?.variants ?? []).filter((v) => !v.archived)
+  const hasVariants = optionNames.length > 0 && activeVariants.length > 0
+  const selectedVariant = hasVariants
+    ? activeVariants.find((v) =>
+        optionNames.every((name) => v.option_values?.[name] === selectedOptions[name])
+      )
+    : undefined
+  const variantSelectionComplete = !hasVariants || Boolean(selectedVariant)
+  const effectivePriceCents = selectedVariant?.price_cents ?? product?.price_cents ?? 0
+  const effectiveInStock = selectedVariant ? selectedVariant.in_stock : (product?.in_stock ?? false)
+  const variantLabel = hasVariants
+    ? optionNames.map((name) => `${name}: ${selectedOptions[name]}`).filter(Boolean).join(", ")
+    : undefined
+
   const estimatedCents = byWeight
     ? calculateWeightLineTotalCents(perKgCents, weightG)
     : product
-      ? product.price_cents * qty
+      ? effectivePriceCents * qty
       : 0
 
   const validateWeight = (): boolean => {
@@ -78,7 +95,7 @@ export default function ProductPage() {
   }
 
   const handleAddToCart = () => {
-    if (!product || !validateWeight()) return
+    if (!product || !validateWeight() || !variantSelectionComplete) return
 
     if (byWeight) {
       addItem({
@@ -90,15 +107,19 @@ export default function ProductPage() {
         pricing_mode: "by_weight",
         requested_weight_g: weightG,
         special_requests: specialRequests,
+        variant_id: selectedVariant?.id,
+        variant_label: variantLabel,
       })
     } else {
       addItem({
         id: product.id,
         name: product.name,
-        price_cents: product.price_cents,
+        price_cents: effectivePriceCents,
         image_url: product.image_url,
         pricing_mode: "fixed",
         quantity: qty,
+        variant_id: selectedVariant?.id,
+        variant_label: variantLabel,
       })
     }
     setAdded(true)
@@ -115,7 +136,11 @@ export default function ProductPage() {
 
   if (!product) return null
 
-  const priceLabel = formatProductPrice(product)
+  const priceLabel = hasVariants
+    ? (selectedVariant ? `R${(effectivePriceCents / 100).toFixed(2)}` : (product.variant_price_range
+        ? `From R${(product.variant_price_range.min / 100).toFixed(2)}`
+        : formatProductPrice(product)))
+    : formatProductPrice(product)
   const waMessage = byWeight
     ? [
         `Hi, I'd like to order ${product.name}`,
@@ -125,7 +150,7 @@ export default function ProductPage() {
       ]
         .filter(Boolean)
         .join("\n")
-    : `Hi, I'd like to order ${qty}x ${product.name} (R${(product.price_cents / 100).toFixed(2)} each)`
+    : `Hi, I'd like to order ${qty}x ${product.name}${variantLabel ? ` (${variantLabel})` : ""} (R${(effectivePriceCents / 100).toFixed(2)} each)`
 
   const displayWeight = product.reference_weight_g ?? product.weight_grams
 
@@ -191,6 +216,47 @@ export default function ProductPage() {
                 </div>
               )}
             </div>
+
+            {hasVariants && (
+              <div className="flex flex-col gap-4">
+                {optionNames.map((name) => {
+                  const values = Array.from(
+                    new Set(activeVariants.map((v) => v.option_values?.[name]).filter(Boolean))
+                  ) as string[]
+                  return (
+                    <div key={name}>
+                      <label className="font-sans text-sm font-medium text-vula-dark">{name}</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {values.map((val) => {
+                          const isSelected = selectedOptions[name] === val
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => setSelectedOptions((prev) => ({ ...prev, [name]: val }))}
+                              className={[
+                                "px-4 py-2 rounded-input border font-sans text-sm transition-colors",
+                                isSelected
+                                  ? "bg-vula-green text-white border-vula-green"
+                                  : "bg-white border-vula-border text-vula-dark hover:border-vula-green",
+                              ].join(" ")}
+                            >
+                              {val}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+                {!variantSelectionComplete && (
+                  <p className="font-sans text-xs text-vula-muted">Choose {optionNames.join(" and ")} to see the price and add to cart.</p>
+                )}
+                {selectedVariant && !selectedVariant.in_stock && (
+                  <p className="font-sans text-xs text-red-500">That combination is currently out of stock.</p>
+                )}
+              </div>
+            )}
 
             {byWeight ? (
               <div className="flex flex-col gap-4">
@@ -260,15 +326,15 @@ export default function ProductPage() {
 
             <div className="flex flex-col gap-3">
               <button
-                disabled={!product.in_stock}
+                disabled={!effectiveInStock || !variantSelectionComplete}
                 onClick={handleAddToCart}
                 className={[
                   "btn-primary w-full justify-center text-base py-4",
-                  !product.in_stock ? "opacity-50 cursor-not-allowed" : "",
+                  (!effectiveInStock || !variantSelectionComplete) ? "opacity-50 cursor-not-allowed" : "",
                 ].join(" ")}
               >
                 <ShoppingCart size={18} />
-                {added ? "Added to cart ✓" : product.in_stock ? "Add to cart" : "Out of stock"}
+                {added ? "Added to cart ✓" : !variantSelectionComplete ? "Choose options" : effectiveInStock ? "Add to cart" : "Out of stock"}
               </button>
 
               <a

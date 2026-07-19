@@ -39,6 +39,17 @@ export type ProductCategory =
 
 export type PricingMode = "fixed" | "by_weight"
 
+export type ProductVariant = {
+  id: string
+  option_values: Record<string, string>
+  sku?: string | null
+  barcode?: string | null
+  price_cents?: number | null   // null = inherits the product's own price
+  stock_quantity?: number | null
+  in_stock: boolean
+  archived: boolean
+}
+
 export type Product = {
   id: string
   slug: string
@@ -59,6 +70,9 @@ export type Product = {
   is_daily_catch: boolean
   in_stock: boolean
   is_featured?: boolean
+  options?: string[] | null
+  variants?: ProductVariant[]
+  variant_price_range?: { min: number; max: number } | null
 }
 
 export async function getProducts(params?: {
@@ -154,7 +168,7 @@ export async function addToCartAPI(sessionId: string, productId: string, quantit
  * checkout charges, so every local edit (add/remove/qty) must mirror to it. */
 export async function syncCartAPI(
   sessionId: string,
-  items: { product_id: string; quantity: number }[],
+  items: { product_id: string; quantity: number; variant_id?: string }[],
   phone?: string,
 ) {
   return vula(`/cart/${sessionId}/sync`, {

@@ -1,7 +1,7 @@
 import "server-only"
-import { readFile, writeFile, mkdir } from "fs/promises"
+import { readFile } from "fs/promises"
 import path from "path"
-import { getProducts, getProduct, updateProduct, type Product, type ProductCategory } from "./api"
+import { getProducts, getProduct, type Product, type ProductCategory } from "./api"
 
 const OVERRIDES_FILE = path.join(process.cwd(), "data/product-overrides.json")
 
@@ -39,11 +39,6 @@ async function readOverrides(): Promise<OverrideMap> {
   }
 }
 
-async function writeOverrides(overrides: OverrideMap): Promise<void> {
-  await mkdir(path.dirname(OVERRIDES_FILE), { recursive: true })
-  await writeFile(OVERRIDES_FILE, JSON.stringify(overrides, null, 2), "utf-8")
-}
-
 export function mergeProduct(product: Product, override?: ProductOverride): Product {
   if (!override) return { ...product, pricing_mode: product.pricing_mode ?? "fixed" }
   const merged = { ...product, ...override, id: product.id }
@@ -59,24 +54,6 @@ export async function getProductForStore(slug: string): Promise<Product> {
   const product = await getProduct(slug)
   const overrides = await readOverrides()
   return mergeProduct(product, overrides[product.id])
-}
-
-export async function saveProductUpdate(
-  id: string,
-  data: ProductOverride
-): Promise<{ product: Product; source: "vula" | "local" }> {
-  try {
-    const product = await updateProduct(id, data)
-    return { product, source: "vula" }
-  } catch {
-    const overrides = await readOverrides()
-    overrides[id] = { ...overrides[id], ...data }
-    await writeOverrides(overrides)
-
-    const base = await getProducts().then((all) => all.find((p) => p.id === id))
-    if (!base) throw new Error("Product not found")
-    return { product: mergeProduct(base, overrides[id]), source: "local" }
-  }
 }
 
 export async function getFeaturedProductsForStore(featuredIds: string[], limit = 8): Promise<Product[]> {

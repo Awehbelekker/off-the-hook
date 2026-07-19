@@ -10,6 +10,13 @@ export function isByWeight(product: Pick<Product, "pricing_mode">): boolean {
   return getPricingMode(product) === "by_weight"
 }
 
+/** True when a product has option categories (Size, Colour, ...) — a shopper must resolve
+ * one to a specific variant before it can be priced/stocked/added, so it can't be added
+ * straight from a product grid card the way a plain fixed-price product can. */
+export function hasVariants(product: Pick<Product, "options">): boolean {
+  return Array.isArray(product.options) && product.options.length > 0
+}
+
 export function calculateWeightLineTotalCents(
   pricePerKgCents: number,
   requestedWeightG: number
