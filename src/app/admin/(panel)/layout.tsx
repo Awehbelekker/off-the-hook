@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { LayoutDashboard, Package, ShoppingBag, Settings, Image, FolderInput, LayoutTemplate } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingBag, Settings, Image, FolderInput, Layout, LayoutTemplate } from "lucide-react"
 import AdminSignOut from "@/components/AdminSignOut"
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/homepage", label: "Homepage", icon: Layout },
   { href: "/admin/pages", label: "Pages", icon: LayoutTemplate },
   { href: "/admin/media", label: "Media", icon: Image },
   { href: "/admin/import", label: "Import", icon: FolderInput },

@@ -2,36 +2,88 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { syncCartAPI } from "@/lib/api"
 import { DEFAULT_STORE_SETTINGS } from "@/lib/settings"
+import type { PricingMode } from "@/lib/api"
+import { calculateWeightLineTotalCents } from "@/lib/pricing"
+import { cartHasByWeightItems, type OrderLineItem } from "@/lib/order-message"
 
-type CartItem = {
+export type { OrderLineItem }
+
+export type AddCartItemInput = {
   id: string
   name: string
   price_cents: number
-  quantity: number
   image_url?: string
+  pricing_mode?: PricingMode
+  requested_weight_g?: number
+  special_requests?: string
+  price_per_kg_cents?: number
+  quantity?: number
 }
 
 type CartStore = {
-  items: CartItem[]
+  items: OrderLineItem[]
   sessionId: string
   deliveryFeeCents: number
   freeDeliveryThresholdCents: number
   setDeliverySettings: (fee: number, threshold: number) => void
-  addItem: (product: Omit<CartItem, "quantity">) => void
-  removeItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
+  addItem: (product: AddCartItemInput) => void
+  removeItem: (lineId: string) => void
+  updateQuantity: (lineId: string, quantity: number) => void
   clearCart: () => void
+  hasByWeightItems: () => boolean
   syncToServer: () => Promise<void>
   subtotalCents: () => number
   deliveryCents: () => number
   totalCents: () => number
 }
 
+function newLineId(): string {
+  return typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+}
+
+function buildLine(product: AddCartItemInput): OrderLineItem {
+  const pricing_mode = product.pricing_mode ?? "fixed"
+  const quantity = product.quantity ?? 1
+
+  if (pricing_mode === "by_weight") {
+    const weightG = product.requested_weight_g ?? 1000
+    const perKg = product.price_per_kg_cents ?? product.price_cents
+    return {
+      lineId: newLineId(),
+      id: product.id,
+      name: product.name,
+      price_cents: perKg,
+      quantity: 1,
+      image_url: product.image_url,
+      pricing_mode: "by_weight",
+      requested_weight_g: weightG,
+      special_requests: product.special_requests?.trim() || undefined,
+      line_total_cents: calculateWeightLineTotalCents(perKg, weightG),
+    }
+  }
+
+  return {
+    lineId: newLineId(),
+    id: product.id,
+    name: product.name,
+    price_cents: product.price_cents,
+    quantity,
+    image_url: product.image_url,
+    pricing_mode: "fixed",
+    line_total_cents: product.price_cents * quantity,
+  }
+}
+
 // P0 fix (2026-07-17): checkout charges from the SERVER cart, but this store previously only
 // mirrored ADDS (and with the wrong semantics — it sent the new total to an endpoint that
 // adds). Removals/quantity edits never reached the server, so a customer could be charged for
-// items they'd removed. Every mutation now mirrors the FULL cart state via /cart/{id}/sync,
-// and checkout calls syncToServer() once more as a final reconcile before paying.
+// items they'd removed. Every mutation now mirrors the FULL cart state via /cart/{id}/sync, and
+// checkout calls syncToServer() once more as a final reconcile before paying.
+//
+// By-weight items (2026-07-06) are WhatsApp-quote-only — the final weight/price is only known
+// once the fish is actually weighed, so they never reach the server cart or paid checkout at
+// all (checkout redirects back to /cart while any are present). syncToServer only ever mirrors
+// the "fixed" priced lines.
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -44,30 +96,46 @@ export const useCartStore = create<CartStore>()(
         set({ deliveryFeeCents: fee, freeDeliveryThresholdCents: threshold }),
 
       addItem: (product) => {
-        set((state) => {
-          const existing = state.items.find((i) => i.id === product.id)
+        const line = buildLine(product)
+        const { items } = get()
+
+        if (line.pricing_mode === "fixed") {
+          const existing = items.find((i) => i.id === product.id && i.pricing_mode === "fixed")
           if (existing) {
-            return {
-              items: state.items.map((i) =>
-                i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+            const newQty = existing.quantity + line.quantity
+            set({
+              items: items.map((i) =>
+                i.lineId === existing.lineId
+                  ? { ...i, quantity: newQty, line_total_cents: i.price_cents * newQty }
+                  : i
               ),
-            }
+            })
+            get().syncToServer().catch(() => {})
+            return
           }
-          return { items: [...state.items, { ...product, quantity: 1 }] }
-        })
+        }
+
+        set({ items: [...items, line] })
+        if (line.pricing_mode === "fixed") {
+          get().syncToServer().catch(() => {})
+        }
+      },
+
+      removeItem: (lineId) => {
+        set((state) => ({ items: state.items.filter((i) => i.lineId !== lineId) }))
         get().syncToServer().catch(() => {})
       },
 
-      removeItem: (id) => {
-        set((state) => ({ items: state.items.filter((i) => i.id !== id) }))
-        get().syncToServer().catch(() => {})
-      },
-
-      updateQuantity: (id, quantity) => {
+      updateQuantity: (lineId, quantity) => {
         set((state) => ({
-          items: quantity <= 0
-            ? state.items.filter((i) => i.id !== id)
-            : state.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+          items:
+            quantity <= 0
+              ? state.items.filter((i) => i.lineId !== lineId)
+              : state.items.map((i) =>
+                  i.lineId === lineId && i.pricing_mode === "fixed"
+                    ? { ...i, quantity, line_total_cents: i.price_cents * quantity }
+                    : i
+                ),
         }))
         get().syncToServer().catch(() => {})
       },
@@ -77,16 +145,18 @@ export const useCartStore = create<CartStore>()(
         get().syncToServer().catch(() => {})
       },
 
+      hasByWeightItems: () => cartHasByWeightItems(get().items),
+
       syncToServer: async () => {
         const { sessionId, items } = get()
+        const fixedItems = items.filter((i) => i.pricing_mode === "fixed")
         await syncCartAPI(
           sessionId,
-          items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+          fixedItems.map((i) => ({ product_id: i.id, quantity: i.quantity })),
         )
       },
 
-      subtotalCents: () =>
-        get().items.reduce((sum, i) => sum + i.price_cents * i.quantity, 0),
+      subtotalCents: () => get().items.reduce((sum, i) => sum + i.line_total_cents, 0),
 
       deliveryCents: () => {
         const sub = get().subtotalCents()

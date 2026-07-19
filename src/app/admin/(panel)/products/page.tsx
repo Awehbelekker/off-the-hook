@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import type { Product } from "@/lib/api"
+import { formatProductPrice, isByWeight } from "@/lib/pricing"
 import ProductEditor from "@/components/admin/ProductEditor"
 
 export default function AdminProductsPage() {
@@ -28,6 +29,11 @@ export default function AdminProductsPage() {
       description: product.description,
       category: product.category,
       price_cents: product.price_cents,
+      pricing_mode: product.pricing_mode ?? "fixed",
+      price_per_kg_cents: product.price_per_kg_cents,
+      min_weight_g: product.min_weight_g,
+      max_weight_g: product.max_weight_g,
+      reference_weight_g: product.reference_weight_g ?? product.weight_grams,
       weight_grams: product.weight_grams,
       serves: product.serves,
       catch_source: product.catch_source,
@@ -105,7 +111,9 @@ export default function AdminProductsPage() {
                   <p className="font-sans font-semibold">{product.name}</p>
                   <p className="font-sans text-sm text-vula-muted line-clamp-2 mt-1">{product.description}</p>
                   <p className="font-sans text-sm text-vula-muted mt-2">
-                    R{(product.price_cents / 100).toFixed(2)} · {product.category}
+                    {formatProductPrice(product)}
+                    {isByWeight(product) && " · by weight"}
+                    {" · "}{product.category}
                     {!product.in_stock && " · Out of stock"}
                     {product.is_daily_catch && " · Daily catch"}
                   </p>
