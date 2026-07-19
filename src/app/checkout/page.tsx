@@ -26,7 +26,7 @@ type FormState = {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, sessionId, subtotalCents, deliveryCents, clearCart } = useCartStore()
+  const { items, sessionId, subtotalCents, deliveryCents, clearCart, syncToServer } = useCartStore()
   const settings = useStoreSettings()
 
   const [form, setForm] = useState<FormState>({
@@ -70,6 +70,9 @@ export default function CheckoutPage() {
     setError(null)
 
     try {
+      // Final reconcile: the server cart is what gets charged — make it match exactly
+      // what the customer sees before creating the order (P0 desync fix).
+      await syncToServer()
       const { redirect_url } = await createCheckout({
         sessionId,
         customerName: form.customerName,

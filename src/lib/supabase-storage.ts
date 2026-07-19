@@ -2,7 +2,7 @@ import "server-only"
 import { getSupabaseAdmin } from "./supabase-server"
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "media"
-const TENANT_PREFIX = "off-the-hook"
+const TENANT_PREFIX = process.env.NEXT_PUBLIC_VULA_TENANT_ID || "off-the-hook"
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { addToCartAPI } from "@/lib/api"
+import { syncCartAPI } from "@/lib/api"
 import { DEFAULT_STORE_SETTINGS } from "@/lib/settings"
 
 type CartItem = {
@@ -21,11 +21,17 @@ type CartStore = {
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
+  syncToServer: () => Promise<void>
   subtotalCents: () => number
   deliveryCents: () => number
   totalCents: () => number
 }
 
+// P0 fix (2026-07-17): checkout charges from the SERVER cart, but this store previously only
+// mirrored ADDS (and with the wrong semantics — it sent the new total to an endpoint that
+// adds). Removals/quantity edits never reached the server, so a customer could be charged for
+// items they'd removed. Every mutation now mirrors the FULL cart state via /cart/{id}/sync,
+// and checkout calls syncToServer() once more as a final reconcile before paying.
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -38,11 +44,8 @@ export const useCartStore = create<CartStore>()(
         set({ deliveryFeeCents: fee, freeDeliveryThresholdCents: threshold }),
 
       addItem: (product) => {
-        const { sessionId, items } = get()
-        const existing = items.find((i) => i.id === product.id)
-        const newQty = existing ? existing.quantity + 1 : 1
-
         set((state) => {
+          const existing = state.items.find((i) => i.id === product.id)
           if (existing) {
             return {
               items: state.items.map((i) =>
@@ -52,21 +55,35 @@ export const useCartStore = create<CartStore>()(
           }
           return { items: [...state.items, { ...product, quantity: 1 }] }
         })
-
-        addToCartAPI(sessionId, product.id, newQty).catch(() => {})
+        get().syncToServer().catch(() => {})
       },
 
-      removeItem: (id) =>
-        set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
+      removeItem: (id) => {
+        set((state) => ({ items: state.items.filter((i) => i.id !== id) }))
+        get().syncToServer().catch(() => {})
+      },
 
-      updateQuantity: (id, quantity) =>
+      updateQuantity: (id, quantity) => {
         set((state) => ({
           items: quantity <= 0
             ? state.items.filter((i) => i.id !== id)
             : state.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
-        })),
+        }))
+        get().syncToServer().catch(() => {})
+      },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        set({ items: [] })
+        get().syncToServer().catch(() => {})
+      },
+
+      syncToServer: async () => {
+        const { sessionId, items } = get()
+        await syncCartAPI(
+          sessionId,
+          items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+        )
+      },
 
       subtotalCents: () =>
         get().items.reduce((sum, i) => sum + i.price_cents * i.quantity, 0),

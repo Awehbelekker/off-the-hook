@@ -4,7 +4,7 @@ import path from "path"
 import { DEFAULT_STORE_SETTINGS, mergeStoreSettings, type StoreSettings } from "./settings"
 
 const VULA_API = process.env.NEXT_PUBLIC_VULA_API_URL || "https://vula-group-production.up.railway.app"
-const TENANT_ID = "off-the-hook"
+const TENANT_ID = process.env.NEXT_PUBLIC_VULA_TENANT_ID || "off-the-hook"
 const SETTINGS_FILE = path.join(process.cwd(), "data/store-settings.json")
 
 async function fetchVulaSettings(): Promise<StoreSettings | null> {

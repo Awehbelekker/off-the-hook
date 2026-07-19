@@ -9,10 +9,31 @@ import Logo from "@/components/Logo"
 import { getFeaturedProductsForStore } from "@/lib/product-overrides-store"
 import { getStoreSettings } from "@/lib/settings-store"
 import { DEFAULT_STORE_SETTINGS } from "@/lib/settings"
+import { getPublishedPage, getTenantTheme } from "@/lib/vula-pages"
+import PuckRender from "@/components/PuckRender"
+import type { Data } from "@measured/puck"
 
 export const revalidate = 60
 
 export default async function HomePage() {
+  // Visual-editor takeover (2026-07-17): if the merchant has PUBLISHED a page with the slug
+  // "home" in the Vula page builder, it becomes the site's home page — no deploy needed.
+  // Unpublish it (back to draft) and this hardcoded design instantly returns as the fallback.
+  const puckHome = await getPublishedPage("home").catch(() => null)
+  if (puckHome?.puck_data) {
+    const theme = await getTenantTheme().catch(() => undefined)
+    return (
+      <>
+        <AnnouncementBarWrapper />
+        <Header />
+        <main className="pb-24 md:pb-0">
+          <PuckRender data={puckHome.puck_data as unknown as Data} theme={theme} />
+        </main>
+        <BottomNav />
+      </>
+    )
+  }
+
   const settings = await getStoreSettings().catch(() => DEFAULT_STORE_SETTINGS)
   const products = await getFeaturedProductsForStore(settings.featured_product_ids, 8).catch(() => [])
 

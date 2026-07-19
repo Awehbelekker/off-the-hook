@@ -138,6 +138,19 @@ export async function addToCartAPI(sessionId: string, productId: string, quantit
   })
 }
 
+/** Replace the server cart with the client's full current state — the server cart is what
+ * checkout charges, so every local edit (add/remove/qty) must mirror to it. */
+export async function syncCartAPI(
+  sessionId: string,
+  items: { product_id: string; quantity: number }[],
+  phone?: string,
+) {
+  return vula(`/cart/${sessionId}/sync`, {
+    method: "POST",
+    body: JSON.stringify({ items, customer_phone: phone }),
+  })
+}
+
 // ── Checkout ─────────────────────────────────────────────────────────────────
 
 export async function createCheckout(data: {
