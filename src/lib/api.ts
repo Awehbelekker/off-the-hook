@@ -188,6 +188,7 @@ export async function createCheckout(data: {
   deliverySlot: "morning" | "afternoon" | "express"
   deliveryNotes?: string
   channel?: "web" | "whatsapp"
+  discountCode?: string
 }): Promise<{ order_id: string; display_id: string; redirect_url: string; total_rands: string }> {
   return vula("/checkout", {
     method: "POST",
@@ -200,7 +201,19 @@ export async function createCheckout(data: {
       delivery_slot: data.deliverySlot,
       delivery_notes: data.deliveryNotes,
       channel: data.channel || "web",
+      discount_code: data.discountCode || undefined,
     }),
+  })
+}
+
+// ── Discount codes ───────────────────────────────────────────────────────────
+
+export type DiscountPreview = { code: string; discount_cents: number; free_shipping: boolean }
+
+export async function validateDiscountCode(code: string, subtotalCents: number): Promise<DiscountPreview> {
+  return vula("/discount-codes/validate", {
+    method: "POST",
+    body: JSON.stringify({ code, subtotal_cents: subtotalCents }),
   })
 }
 

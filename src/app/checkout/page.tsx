@@ -9,7 +9,7 @@ import { WHATSAPP_DISPLAY } from "@/lib/whatsapp"
 import Header from "@/components/Header"
 import BottomNav from "@/components/BottomNav"
 import { useCartStore } from "@/store/cart"
-import { createCheckout } from "@/lib/api"
+import { createCheckout, validateDiscountCode, type DiscountPreview } from "@/lib/api"
 import { useStoreSettings } from "@/components/StoreSettingsProvider"
 
 type DeliverySlot = "morning" | "afternoon" | "express"
@@ -41,6 +41,10 @@ export default function CheckoutPage() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [discountInput, setDiscountInput] = useState("")
+  const [discount, setDiscount] = useState<DiscountPreview | null>(null)
+  const [discountError, setDiscountError] = useState<string | null>(null)
+  const [checkingDiscount, setCheckingDiscount] = useState(false)
 
   // Redirect to cart if empty — in an effect, never during render (SSR-safe)
   useEffect(() => {
@@ -54,11 +58,33 @@ export default function CheckoutPage() {
   }, [items.length, submitting, router, cartHasWeightItems])
 
   const subtotal = subtotalCents()
-  const delivery = deliveryCents()
+  const baseDelivery = deliveryCents()
   const expressExtra = settings.express_delivery_extra_cents
+  const delivery = discount?.free_shipping ? 0 : baseDelivery
+  const discountCents = Math.min(discount?.discount_cents ?? 0, subtotal)
   const total =
-    subtotal +
+    Math.max(0, subtotal - discountCents) +
     (form.deliverySlot === "express" ? delivery + expressExtra : delivery)
+
+  const applyDiscount = async () => {
+    if (!discountInput.trim()) return
+    setCheckingDiscount(true)
+    setDiscountError(null)
+    try {
+      const preview = await validateDiscountCode(discountInput.trim(), subtotal)
+      setDiscount(preview)
+    } catch (err) {
+      setDiscount(null)
+      setDiscountError(err instanceof Error ? err.message.replace(/^Vula API \d+: /, "") : "Couldn't apply that code.")
+    }
+    setCheckingDiscount(false)
+  }
+
+  const removeDiscount = () => {
+    setDiscount(null)
+    setDiscountInput("")
+    setDiscountError(null)
+  }
 
   const SLOTS = [
     { value: "morning", label: "Morning", detail: "08:00–12:00", icon: Clock, extra: "" },
@@ -87,6 +113,7 @@ export default function CheckoutPage() {
         deliverySlot: form.deliverySlot,
         deliveryNotes: form.deliveryNotes || undefined,
         channel: "web",
+        discountCode: discount?.code,
       })
 
       clearCart()
@@ -207,6 +234,12 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>R{(subtotal / 100).toFixed(2)}</span>
                 </div>
+                {discountCents > 0 && (
+                  <div className="flex justify-between text-vula-green">
+                    <span>Discount ({discount?.code})</span>
+                    <span>−R{(discountCents / 100).toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-vula-muted mb-2">
                   <span>Delivery ({form.deliverySlot})</span>
                   <span>{form.deliverySlot === "express" ? `R${((delivery + expressExtra) / 100).toFixed(2)}` : delivery === 0 ? <span className="text-vula-green">Free</span> : `R${(delivery / 100).toFixed(2)}`}</span>
@@ -215,6 +248,38 @@ export default function CheckoutPage() {
                   <span>Total</span>
                   <span>R{(total / 100).toFixed(2)}</span>
                 </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-vula-border">
+                {discount ? (
+                  <div className="flex items-center justify-between font-sans text-sm">
+                    <span className="text-vula-green font-medium">
+                      ✓ {discount.code} applied{discount.free_shipping ? " — free shipping" : ""}
+                    </span>
+                    <button type="button" onClick={removeDiscount} className="text-vula-muted underline text-xs">Remove</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Discount code"
+                        value={discountInput}
+                        onChange={(e) => { setDiscountInput(e.target.value.toUpperCase()); setDiscountError(null) }}
+                        className="flex-1 bg-white border border-vula-border rounded-input px-3 py-2 font-sans text-sm uppercase placeholder:normal-case placeholder:text-vula-muted"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyDiscount}
+                        disabled={checkingDiscount || !discountInput.trim()}
+                        className="btn-ghost px-4 text-sm disabled:opacity-50"
+                      >
+                        {checkingDiscount ? "Checking…" : "Apply"}
+                      </button>
+                    </div>
+                    {discountError && <p className="font-sans text-xs text-red-400">{discountError}</p>}
+                  </div>
+                )}
               </div>
             </div>
 
