@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Render, type Data } from "@measured/puck";
-import config from "@/puck.config";
+import config, { VULA_PUCK_STYLES } from "@/puck.config";
 
 const TENANT_ID = process.env.NEXT_PUBLIC_VULA_TENANT_ID || "off-the-hook";
 const VULA_API = process.env.NEXT_PUBLIC_VULA_API_URL || "https://vula-group-production.up.railway.app";
@@ -22,6 +22,7 @@ export default function PuckRender({ data, theme }: { data: Data; theme?: Record
   if (theme?.accent_fg) vars["--brand-accent-fg"] = theme.accent_fg;
   return (
     <div style={vars as React.CSSProperties}>
+      <style>{VULA_PUCK_STYLES}</style>
       <Render config={config} data={data} />
     </div>
   );
