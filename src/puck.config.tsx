@@ -99,12 +99,30 @@ function useStaggerReveal<T extends HTMLElement = HTMLElement>() {
 }
 const staggerDelay = (i: number) => ({ animationDelay: `${Math.min(i, 6) * 80}ms` });
 
+// Per-block animation choice (2026-07-22 depth pass, kept in sync with vula_dashboard/src/puck/
+// config.jsx's copy — see that file's comment for the full rationale). `animation` is optional so
+// pages saved before this field existed keep their original hardcoded animation unchanged.
+const ANIM_FIELD = {
+  type: "select" as const, label: "Entrance animation",
+  options: [
+    { label: "Fade up", value: "fadeUp" }, { label: "Fade in", value: "fadeIn" },
+    { label: "Scale in", value: "scaleIn" }, { label: "Slide from left", value: "slideInLeft" },
+    { label: "Slide from right", value: "slideInRight" }, { label: "None", value: "none" },
+  ],
+};
+function useBlockReveal<T extends HTMLElement = HTMLElement>(animation: string | undefined, fallbackAnim: string) {
+  const anim = animation === "none" ? null : (animation || fallbackAnim);
+  const ref = useReveal<T>(anim || fallbackAnim);
+  return anim ? { ref, className: "vula-reveal" } : {};
+}
+
 type Props = {
-  Hero: { title: string; subtitle: string; image: string; ctaText: string; ctaHref: string };
-  Heading: { text: string; level: "h1" | "h2" | "h3"; align: "left" | "center" };
-  Text: { text: string; align: "left" | "center" };
-  ImageBlock: { src: string; alt: string; rounded: boolean };
-  CTA: { text: string; href: string; variant: "solid" | "outline" };
+  Hero: { title: string; subtitle: string; image: string; overlayOpacity?: number;
+    ctaText: string; ctaHref: string; ctaText2?: string; ctaHref2?: string; animation?: string };
+  Heading: { text: string; level: "h1" | "h2" | "h3"; align: "left" | "center"; animation?: string };
+  Text: { text: string; align: "left" | "center"; animation?: string };
+  ImageBlock: { src: string; alt: string; rounded: boolean; animation?: string };
+  CTA: { text: string; href: string; variant: "solid" | "outline"; animation?: string };
   Features: { title: string; items: { heading: string; body: string }[] };
   Spacer: { size: "sm" | "md" | "lg" };
   ProductGrid: { title: string; category: string; count: number; linkBase: string };
@@ -113,15 +131,15 @@ type Props = {
   TwoColumns: { leftImage: string; leftHeading: string; leftBody: string; rightImage: string; rightHeading: string; rightBody: string };
   Gallery: { title: string; images: { src: string; alt: string }[] };
   Testimonials: { title: string; items: { quote: string; author: string; role: string }[] };
-  VideoEmbed: { url: string; caption: string };
-  WhatsAppCTA: { phone: string; message: string; buttonText: string };
-  ContactCard: { title: string; phone: string; email: string; address: string; hours: string };
+  VideoEmbed: { url: string; caption: string; animation?: string };
+  WhatsAppCTA: { phone: string; message: string; buttonText: string; animation?: string };
+  ContactCard: { title: string; phone: string; email: string; address: string; hours: string; animation?: string };
   AnnouncementBar: { text: string; linkText: string; href: string };
   Divider: { style: "solid" | "dashed" };
   Section: {
     background: "none" | "solid" | "gradient" | "image";
     backgroundColor: string; backgroundImage: string; overlayOpacity: number;
-    padding: "none" | "sm" | "md" | "lg"; tinted: boolean; content: Slot;
+    padding: "none" | "sm" | "md" | "lg"; tinted: boolean; animation?: string; content: Slot;
   };
 };
 
@@ -147,25 +165,39 @@ export const config: Config<Props> = {
       fields: {
         title: { type: "text" }, subtitle: { type: "textarea" },
         image: { type: "text", label: "Background image URL" },
-        ctaText: { type: "text", label: "Button text" }, ctaHref: { type: "text", label: "Button link" },
+        overlayOpacity: { type: "number", label: "Dark overlay strength 0-100" },
+        ctaText: { type: "text", label: "Primary button text" }, ctaHref: { type: "text", label: "Primary button link" },
+        ctaText2: { type: "text", label: "Second button text (optional)" }, ctaHref2: { type: "text", label: "Second button link" },
+        animation: ANIM_FIELD,
       },
-      defaultProps: { title: "Your headline", subtitle: "A short supporting line.", image: "", ctaText: "Shop now", ctaHref: "/shop" },
+      defaultProps: { title: "Your headline", subtitle: "A short supporting line.", image: "", overlayOpacity: 55,
+        ctaText: "Shop now", ctaHref: "/shop", ctaText2: "", ctaHref2: "" },
       // Named (not anonymous) so eslint-plugin-react-hooks recognizes this as a component and
       // allows the hook call below — Puck genuinely invokes `render` as <Component {...props} />,
       // but the lint rule's heuristic only accepts that for a capitalized function name.
-      render: function Render({ title, subtitle, image, ctaText, ctaHref }) {
-        const ref = useReveal("fadeIn");
+      render: function Render({ title, subtitle, image, overlayOpacity, ctaText, ctaHref, ctaText2, ctaHref2, animation }) {
+        const reveal = useBlockReveal(animation, "fadeIn");
+        const overlay = overlayOpacity ?? 55;
         return (
-          <section ref={ref} className="vula-reveal relative flex items-center justify-center text-center text-white"
+          <section {...reveal} className={`relative flex items-center justify-center text-center text-white ${reveal.className || ""}`}
             style={{ minHeight: 420, backgroundColor: ACCENT, backgroundImage: image ? `url(${image})` : undefined, backgroundSize: "cover", backgroundPosition: "center" }}>
-            <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)" }} />
+            <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,${Math.min(overlay, 100) * 0.27 / 100}) 0%, rgba(0,0,0,${Math.min(overlay, 100) / 100}) 100%)` }} />
             <div className="relative z-10 max-w-3xl px-4 py-20">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">{title}</h1>
               {subtitle ? <p className="text-lg opacity-90 mb-6">{subtitle}</p> : null}
-              {ctaText ? (
-                <Link href={ctaHref || "#"} className="inline-block rounded-full px-7 py-3 font-semibold shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                  style={{ backgroundColor: ACCENT_FG, color: INK }}>{ctaText}</Link>
-              ) : null}
+              {(ctaText || ctaText2) && (
+                <div className="flex gap-3 justify-center flex-wrap">
+                  {ctaText ? (
+                    <Link href={ctaHref || "#"} className="inline-block rounded-full px-7 py-3 font-semibold shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                      style={{ backgroundColor: ACCENT_FG, color: INK }}>{ctaText}</Link>
+                  ) : null}
+                  {ctaText2 ? (
+                    <Link href={ctaHref2 || "#"} className="inline-block rounded-full px-7 py-3 font-semibold border border-white/70 text-white no-underline transition-transform duration-200 hover:-translate-y-0.5">
+                      {ctaText2}
+                    </Link>
+                  ) : null}
+                </div>
+              )}
             </div>
           </section>
         );
@@ -177,13 +209,14 @@ export const config: Config<Props> = {
         text: { type: "text" },
         level: { type: "select", options: [{ label: "H1", value: "h1" }, { label: "H2", value: "h2" }, { label: "H3", value: "h3" }] },
         align: { type: "select", options: [{ label: "Left", value: "left" }, { label: "Center", value: "center" }] },
+        animation: ANIM_FIELD,
       },
       defaultProps: { text: "Section heading", level: "h2", align: "left" },
-      render: function Render({ text, level, align }) {
+      render: function Render({ text, level, align, animation }) {
         const size = level === "h1" ? "text-4xl" : level === "h2" ? "text-3xl" : "text-2xl";
-        const ref = useReveal<HTMLDivElement>("fadeUp");
+        const reveal = useBlockReveal<HTMLDivElement>(animation, "fadeUp");
         return (
-          <div ref={ref} className={`vula-reveal ${wrap} py-6`}>
+          <div {...reveal} className={`${wrap} py-6 ${reveal.className || ""}`}>
             {createElement(level, { className: `${size} font-bold ${align === "center" ? "text-center" : ""}`, style: { color: INK } }, text)}
           </div>
         );
@@ -194,12 +227,13 @@ export const config: Config<Props> = {
       fields: {
         text: { type: "textarea" },
         align: { type: "select", options: [{ label: "Left", value: "left" }, { label: "Center", value: "center" }] },
+        animation: ANIM_FIELD,
       },
       defaultProps: { text: "Write your content here.", align: "left" },
-      render: function Render({ text, align }) {
-        const ref = useReveal<HTMLDivElement>("fadeUp");
+      render: function Render({ text, align, animation }) {
+        const reveal = useBlockReveal<HTMLDivElement>(animation, "fadeUp");
         return (
-          <div ref={ref} className={`vula-reveal ${wrap} py-3`}>
+          <div {...reveal} className={`${wrap} py-3 ${reveal.className || ""}`}>
             <p className={`leading-relaxed whitespace-pre-line max-w-3xl text-gray-600 ${align === "center" ? "mx-auto text-center" : ""}`}>{text}</p>
           </div>
         );
@@ -210,12 +244,13 @@ export const config: Config<Props> = {
       fields: {
         src: { type: "text", label: "Image URL" }, alt: { type: "text" },
         rounded: { type: "radio", options: [{ label: "Rounded", value: true }, { label: "Square", value: false }] },
+        animation: ANIM_FIELD,
       },
       defaultProps: { src: "", alt: "", rounded: true },
-      render: function Render({ src, alt, rounded }) {
-        const ref = useReveal<HTMLDivElement>("scaleIn");
+      render: function Render({ src, alt, rounded, animation }) {
+        const reveal = useBlockReveal<HTMLDivElement>(animation, "scaleIn");
         return (
-          <div ref={ref} className={`vula-reveal ${wrap} py-6`}>
+          <div {...reveal} className={`${wrap} py-6 ${reveal.className || ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {src ? <img src={src} alt={alt} className={`w-full object-cover shadow-sm ${rounded ? "rounded-2xl" : ""}`} /> : <div className={`h-48 bg-gray-100 ${rounded ? "rounded-2xl" : ""}`} />}
           </div>
@@ -227,12 +262,13 @@ export const config: Config<Props> = {
       fields: {
         text: { type: "text" }, href: { type: "text" },
         variant: { type: "select", options: [{ label: "Solid", value: "solid" }, { label: "Outline", value: "outline" }] },
+        animation: ANIM_FIELD,
       },
       defaultProps: { text: "Get in touch", href: "/contact", variant: "solid" },
-      render: function Render({ text, href, variant }) {
-        const ref = useReveal<HTMLDivElement>("fadeUp");
+      render: function Render({ text, href, variant, animation }) {
+        const reveal = useBlockReveal<HTMLDivElement>(animation, "fadeUp");
         return (
-          <div ref={ref} className={`vula-reveal ${wrap} py-5 text-center`}>
+          <div {...reveal} className={`${wrap} py-5 text-center ${reveal.className || ""}`}>
             <Link href={href || "#"} className="inline-block rounded-full px-7 py-3 font-semibold border shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               style={variant === "solid"
                 ? { backgroundColor: ACCENT, color: ACCENT_FG, borderColor: ACCENT }
@@ -421,15 +457,15 @@ export const config: Config<Props> = {
     },
     VideoEmbed: {
       label: "Video",
-      fields: { url: { type: "text", label: "YouTube / Vimeo / direct video URL" }, caption: { type: "text" } },
+      fields: { url: { type: "text", label: "YouTube / Vimeo / direct video URL" }, caption: { type: "text" }, animation: ANIM_FIELD },
       defaultProps: { url: "", caption: "" },
-      render: function Render({ url, caption }) {
+      render: function Render({ url, caption, animation }) {
         const yt = (url || "").match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)([\w-]+)/);
         const vimeo = (url || "").match(/vimeo\.com\/(\d+)/);
         const embedSrc = yt ? `https://www.youtube.com/embed/${yt[1]}` : vimeo ? `https://player.vimeo.com/video/${vimeo[1]}` : null;
-        const ref = useReveal("fadeUp");
+        const reveal = useBlockReveal(animation, "fadeUp");
         return (
-          <section ref={ref} className={`vula-reveal ${wrap} py-10`}>
+          <section {...reveal} className={`${wrap} py-10 ${reveal.className || ""}`}>
             <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ paddingTop: "56.25%", background: "#000" }}>
               {embedSrc ? (
                 <iframe src={embedSrc} title={caption || "Video"} allowFullScreen className="absolute inset-0 w-full h-full border-0" />
@@ -451,14 +487,15 @@ export const config: Config<Props> = {
         phone: { type: "text", label: "Phone (27…, no +)" },
         message: { type: "text", label: "Pre-filled message" },
         buttonText: { type: "text" },
+        animation: ANIM_FIELD,
       },
       defaultProps: { phone: "", message: "Hi! I'd like to order.", buttonText: "💬 Chat on WhatsApp" },
-      render: function Render({ phone, message, buttonText }) {
+      render: function Render({ phone, message, buttonText, animation }) {
         const n = (phone || "").replace(/\D/g, "");
         const href = n ? `https://wa.me/${n}${message ? `?text=${encodeURIComponent(message)}` : ""}` : "#";
-        const ref = useReveal<HTMLDivElement>("fadeUp");
+        const reveal = useBlockReveal<HTMLDivElement>(animation, "fadeUp");
         return (
-          <div ref={ref} className={`vula-reveal ${wrap} py-6 text-center`}>
+          <div {...reveal} className={`${wrap} py-6 text-center ${reveal.className || ""}`}>
             <a href={href} target="_blank" rel="noreferrer" className="inline-block rounded-full px-8 py-3.5 font-bold text-white text-base no-underline shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               style={{ background: "#25D366" }}>{buttonText}</a>
           </div>
@@ -471,12 +508,13 @@ export const config: Config<Props> = {
         title: { type: "text" },
         phone: { type: "text" }, email: { type: "text" },
         address: { type: "textarea" }, hours: { type: "textarea" },
+        animation: ANIM_FIELD,
       },
       defaultProps: { title: "Get in touch", phone: "", email: "", address: "", hours: "" },
-      render: function Render({ title, phone, email, address, hours }) {
-        const ref = useReveal("fadeUp");
+      render: function Render({ title, phone, email, address, hours, animation }) {
+        const reveal = useBlockReveal(animation, "fadeUp");
         return (
-          <section ref={ref} className={`vula-reveal ${wrap} py-10`}>
+          <section {...reveal} className={`${wrap} py-10 ${reveal.className || ""}`}>
             <div className="vula-card-lift rounded-2xl border border-gray-200 p-7 mx-auto shadow-sm bg-white" style={{ maxWidth: 420 }}>
               {title ? <h3 className="text-xl font-extrabold mb-3.5" style={{ color: INK }}>{title}</h3> : null}
               {phone ? <p className="my-1.5 text-gray-700">📞 <a href={`tel:${phone}`} className="text-gray-700">{phone}</a></p> : null}
@@ -523,22 +561,23 @@ export const config: Config<Props> = {
           { label: "Medium", value: "md" }, { label: "Large", value: "lg" },
         ] },
         tinted: { type: "radio", label: "Tint", options: [{ label: "Light brand tint", value: true }, { label: "Plain", value: false }] },
+        animation: ANIM_FIELD,
         content: { type: "slot" },
       },
       defaultProps: {
         background: "none", backgroundColor: "", backgroundImage: "", overlayOpacity: 40,
         padding: "md", tinted: false, content: [],
       },
-      render: function Render({ background, backgroundColor, backgroundImage, overlayOpacity, padding, tinted, content: Content }) {
+      render: function Render({ background, backgroundColor, backgroundImage, overlayOpacity, padding, tinted, animation, content: Content }) {
         const padPx = padding === "none" ? 0 : padding === "sm" ? 24 : padding === "lg" ? 96 : 48;
         const bgStyle: React.CSSProperties =
           background === "solid" ? { backgroundColor: backgroundColor || ACCENT } :
           background === "gradient" ? { backgroundImage: `linear-gradient(135deg, ${backgroundColor || ACCENT} 0%, ${INK} 100%)` } :
           background === "image" && backgroundImage ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: "cover", backgroundPosition: "center" } :
           tinted ? { background: "color-mix(in srgb, var(--brand-accent, #0E7C7B) 6%, white)" } : {};
-        const ref = useReveal("fadeIn");
+        const reveal = useBlockReveal(animation, "fadeIn");
         return (
-          <section ref={ref} className="vula-reveal relative" style={{ padding: `${padPx}px 16px`, ...bgStyle }}>
+          <section {...reveal} className={`relative ${reveal.className || ""}`} style={{ padding: `${padPx}px 16px`, ...bgStyle }}>
             {background === "image" && backgroundImage ? (
               <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${(overlayOpacity ?? 40) / 100})` }} />
             ) : null}
